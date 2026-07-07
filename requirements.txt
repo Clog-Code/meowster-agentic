@@ -1,0 +1,14 @@
+fastapi>=0.115
+uvicorn[standard]>=0.34
+python-dotenv>=1.0
+pyyaml>=6.0
+
+# Agent stack
+deepagents>=0.4
+langchain>=1.0
+langchain-core>=1.0
+langgraph>=1.0
+langchain-mcp-adapters>=0.1
+
+# AG-UI protocol (events + SSE encoder)
+ag-ui-protocol>=0.1.19

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module 2 — AG-UI Test Harness</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🐾 Module 2 — Autonomous Intervention</h1>
+      <p class="subtitle">
+        Backend dev test harness only — the real frontend is the Flutter app.
+        This page just exercises the AG-UI <code>/agent</code> endpoint.
+      </p>
+    </header>
+
+    <section class="panel">
+      <h2>Quick perception event</h2>
+      <p class="hint">Simulates what Module 1 (ML) would POST to <code>/perception</code>.</p>
+      <div class="row">
+        <select id="scenario">
+          <option value="health">Health emergency (limping + whining)</option>
+          <option value="supply">Supply shortage (food empty)</option>
+          <option value="info">Info only (happy, all normal)</option>
+        </select>
+        <button id="send-perception">Send perception event</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Chat</h2>
+      <div id="messages" class="messages"></div>
+      <div class="row">
+        <input id="chat-input" type="text" placeholder="Type a message to the orchestrator…" />
+        <button id="send-chat">Send</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Todos (state snapshot)</h2>
+      <ul id="todos"></ul>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
