@@ -92,7 +92,7 @@ Both run standalone, no network or API keys required.
 ## Folder structure
 
 ```
-pet-module2-agent/
+amd-pet-agentic/
 ├── agent/
 │   ├── config.py, llm.py
 │   ├── core/            # registry, events, messages, perception, runner
