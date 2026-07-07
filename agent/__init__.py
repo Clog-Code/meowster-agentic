@@ -6,10 +6,10 @@ NOT listed here — they're loaded dynamically at runtime by
 `agent.mcp.discover_mcp_tools()` and merged in by `core/registry.py`.
 """
 
-from .calendar import CALENDAR_TOOLS
-from .commerce import COMMERCE_TOOLS
-from .communication import COMMUNICATION_TOOLS
-from .pet_profile import PET_PROFILE_TOOLS
+from .tools.calendar import CALENDAR_TOOLS
+from .tools.commerce import COMMERCE_TOOLS
+from .tools.communication import COMMUNICATION_TOOLS
+from .tools.pet_profile import PET_PROFILE_TOOLS
 
 __all__ = [
     "CALENDAR_TOOLS",
