@@ -29,15 +29,14 @@ AG-UI SSE events  ──►  static/ test page  or  Flutter app
 ## Setup
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # fill in LLM_* and MCP_* values
+cp .env.example .env   # fill in all values
+uv pip install -r requirements.txt
 ```
 
 Run it:
 
 ```bash
-uvicorn backend.main:app --reload --port 8000
+uv run uvicorn backend.main:app --reload --port 8000
 ```
 
 Open `http://localhost:8000/` for the test harness, or `http://localhost:8000/docs`
@@ -67,15 +66,15 @@ Stdio-transport plugins are supported too — use `MCP_<NAME>_COMMAND` /
 
 ## What's stubbed vs. functional
 
-| Tool | File | Status |
-|---|---|---|
-| `make_phone_call` | `agent/tools/communication/call_tool.py` | **Stub** — wire up Twilio or similar |
-| `send_email` | `agent/tools/communication/email_tool.py` | **Stub** — wire up SMTP/SendGrid/etc. |
-| `send_whatsapp_message` | `agent/tools/communication/whatsapp_tool.py` | **Stub** — wire up WhatsApp Business API |
-| `place_order` | `agent/tools/commerce/order_tool.py` | **Stub** — wire up retailer API + TnG/payment gateway |
-| `get_user_availability` | `agent/tools/calendar/availability_tool.py` | **Stub** — wire up Google Calendar/Outlook |
-| `calculate_daily_portion` | `agent/tools/commerce/nutrition_tool.py` | ✅ Functional (RER/DER veterinary formulas) |
-| `get_pet_profile` | `agent/tools/pet_profile/pet_profile_tool.py` | ✅ Functional (reads `backend/db.py` SQLite) |
+| Tool                        | File                                            | Status                                                       |
+| --------------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
+| `make_phone_call`         | `agent/tools/communication/call_tool.py`      | **Stub** — wire up Twilio or similar                  |
+| `send_email`              | `agent/tools/communication/email_tool.py`     | **Stub** — wire up SMTP/SendGrid/etc.                 |
+| `send_whatsapp_message`   | `agent/tools/communication/whatsapp_tool.py`  | **Stub** — wire up WhatsApp Business API              |
+| `place_order`             | `agent/tools/commerce/order_tool.py`          | **Stub** — wire up retailer API + TnG/payment gateway |
+| `get_user_availability`   | `agent/tools/calendar/availability_tool.py`   | **Stub** — wire up Google Calendar/Outlook            |
+| `calculate_daily_portion` | `agent/tools/commerce/nutrition_tool.py`      | ✅ Functional (RER/DER veterinary formulas)                  |
+| `get_pet_profile`         | `agent/tools/pet_profile/pet_profile_tool.py` | ✅ Functional (reads`backend/db.py` SQLite)                |
 
 Every stub returns `{"status": "stubbed", ...}` and logs a clear TODO —
 subagents and skills are instructed to always surface that to the user
