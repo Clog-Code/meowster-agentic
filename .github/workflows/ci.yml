@@ -24,7 +24,7 @@ jobs:
               uses: astral-sh/setup-uv@v4
 
             - name: Install Python dependencies
-              run: uv sync --group lint
+              run: uv sync --extra lint
 
             - name: Lint (ruff check)
               run: uv run ruff check .
