@@ -25,12 +25,17 @@ from __future__ import annotations
 
 import uuid
 
+from dotenv import load_dotenv
 from ag_ui.core import RunAgentInput
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+# Load .env before any local config so LANGSMITH_*, DATABASE_PATH,
+# MCP_SERVERS, and other env‑based settings are available.
+load_dotenv()
 
 from agent.core import parse_perception_payload, run_agent
 
