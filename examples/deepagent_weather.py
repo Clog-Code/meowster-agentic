@@ -1,10 +1,14 @@
+"""Example agent that queries weather for a city."""
+
 # Install:
 # pip install deepagents python-dotenv langchain-fireworks
+
 
 from deepagents import create_deep_agent
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 def get_weather(city: str) -> str:
     """Get weather for a given city."""

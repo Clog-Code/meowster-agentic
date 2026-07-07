@@ -17,7 +17,12 @@ def test_health_flags_trigger_emergency():
 
 def test_distress_emotion_triggers_emergency():
     event = parse_perception_payload(
-        {"pet_id": "p1", "species": "cat", "emotion": "distress", "emotion_confidence": 0.9}
+        {
+            "pet_id": "p1",
+            "species": "cat",
+            "emotion": "distress",
+            "emotion_confidence": 0.9,
+        }
     )
     assert event.classify() == WorkflowKind.HEALTH_EMERGENCY
 
@@ -74,7 +79,9 @@ if __name__ == "__main__":
     import inspect
 
     test_functions = [
-        obj for name, obj in list(globals().items()) if name.startswith("test_") and inspect.isfunction(obj)
+        obj
+        for name, obj in list(globals().items())
+        if name.startswith("test_") and inspect.isfunction(obj)
     ]
     failures = 0
     for fn in test_functions:

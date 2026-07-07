@@ -46,55 +46,85 @@ def sse(event) -> str:
 
 
 def run_started(thread_id, run_id) -> str:
+    """Build a run-started SSE event."""
     return sse(
         RunStartedEvent(
-            type=EventType.RUN_STARTED, timestamp=_now(), thread_id=thread_id, run_id=run_id
+            type=EventType.RUN_STARTED,
+            timestamp=_now(),
+            thread_id=thread_id,
+            run_id=run_id,
         )
     )
 
 
 def run_finished(thread_id, run_id) -> str:
+    """Build a run-finished SSE event."""
     return sse(
         RunFinishedEvent(
-            type=EventType.RUN_FINISHED, timestamp=_now(), thread_id=thread_id, run_id=run_id
+            type=EventType.RUN_FINISHED,
+            timestamp=_now(),
+            thread_id=thread_id,
+            run_id=run_id,
         )
     )
 
 
 def run_error(message: str) -> str:
-    return sse(RunErrorEvent(type=EventType.RUN_ERROR, timestamp=_now(), message=message))
+    """Build a run-error SSE event."""
+    return sse(
+        RunErrorEvent(type=EventType.RUN_ERROR, timestamp=_now(), message=message)
+    )
 
 
 def step_started(name: str) -> str:
-    return sse(StepStartedEvent(type=EventType.STEP_STARTED, timestamp=_now(), step_name=name))
+    """Build a step-started SSE event."""
+    return sse(
+        StepStartedEvent(type=EventType.STEP_STARTED, timestamp=_now(), step_name=name)
+    )
 
 
 def step_finished(name: str) -> str:
-    return sse(StepFinishedEvent(type=EventType.STEP_FINISHED, timestamp=_now(), step_name=name))
+    """Build a step-finished SSE event."""
+    return sse(
+        StepFinishedEvent(
+            type=EventType.STEP_FINISHED, timestamp=_now(), step_name=name
+        )
+    )
 
 
 # ── text streaming ───────────────────────────────────────────────────────────
 
 
 def text_start(msg_id: str) -> str:
+    """Build a text-message-start SSE event."""
     return sse(
         TextMessageStartEvent(
-            type=EventType.TEXT_MESSAGE_START, timestamp=_now(), message_id=msg_id, role="assistant"
+            type=EventType.TEXT_MESSAGE_START,
+            timestamp=_now(),
+            message_id=msg_id,
+            role="assistant",
         )
     )
 
 
 def text_delta(msg_id: str, delta: str) -> str:
+    """Build a text-message-content SSE event."""
     return sse(
         TextMessageContentEvent(
-            type=EventType.TEXT_MESSAGE_CONTENT, timestamp=_now(), message_id=msg_id, delta=delta
+            type=EventType.TEXT_MESSAGE_CONTENT,
+            timestamp=_now(),
+            message_id=msg_id,
+            delta=delta,
         )
     )
 
 
 def text_end(msg_id: str) -> str:
+    """Build a text-message-end SSE event."""
     return sse(
-        TextMessageEndEvent(type=EventType.TEXT_MESSAGE_END, timestamp=_now(), message_id=msg_id)
+        TextMessageEndEvent(
+            type=EventType.TEXT_MESSAGE_END, timestamp=_now(), message_id=msg_id
+        )
     )
 
 
@@ -102,6 +132,7 @@ def text_end(msg_id: str) -> str:
 
 
 def tool_start(call_id: str, name: str, parent_msg_id: str) -> str:
+    """Build a tool-call-start SSE event."""
     return sse(
         ToolCallStartEvent(
             type=EventType.TOOL_CALL_START,
@@ -114,6 +145,7 @@ def tool_start(call_id: str, name: str, parent_msg_id: str) -> str:
 
 
 def tool_args_chunks(call_id: str, raw_args: str) -> list[str]:
+    """Build tool-call-args chunk SSE events (split for streaming)."""
     return [
         sse(
             ToolCallArgsEvent(
@@ -127,19 +159,26 @@ def tool_args_chunks(call_id: str, raw_args: str) -> list[str]:
     ] or [
         sse(
             ToolCallArgsEvent(
-                type=EventType.TOOL_CALL_ARGS, timestamp=_now(), tool_call_id=call_id, delta=""
+                type=EventType.TOOL_CALL_ARGS,
+                timestamp=_now(),
+                tool_call_id=call_id,
+                delta="",
             )
         )
     ]
 
 
 def tool_end(call_id: str) -> str:
+    """Build a tool-call-end SSE event."""
     return sse(
-        ToolCallEndEvent(type=EventType.TOOL_CALL_END, timestamp=_now(), tool_call_id=call_id)
+        ToolCallEndEvent(
+            type=EventType.TOOL_CALL_END, timestamp=_now(), tool_call_id=call_id
+        )
     )
 
 
 def tool_result(msg_id: str, call_id: str, content: str) -> str:
+    """Build a tool-call-result SSE event."""
     return sse(
         ToolCallResultEvent(
             type=EventType.TOOL_CALL_RESULT,
@@ -156,6 +195,9 @@ def tool_result(msg_id: str, call_id: str, content: str) -> str:
 
 
 def state_snapshot(snapshot: dict) -> str:
+    """Build a state-snapshot SSE event."""
     return sse(
-        StateSnapshotEvent(type=EventType.STATE_SNAPSHOT, timestamp=_now(), snapshot=snapshot)
+        StateSnapshotEvent(
+            type=EventType.STATE_SNAPSHOT, timestamp=_now(), snapshot=snapshot
+        )
     )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -10,6 +11,7 @@ from .db import get_db
 
 
 def ensure_thread(thread_id: str) -> None:
+    """Create a conversation thread if it doesn't already exist."""
     with get_db() as conn:
         conn.execute(
             "INSERT OR IGNORE INTO threads (thread_id) VALUES (?)",
@@ -18,6 +20,7 @@ def ensure_thread(thread_id: str) -> None:
 
 
 def persist_message(message_id: str, thread_id: str, role: str, content: str) -> None:
+    """Persist a chat message to the database."""
     ensure_thread(thread_id)
     with get_db() as conn:
         conn.execute(
@@ -30,6 +33,7 @@ def persist_message(message_id: str, thread_id: str, role: str, content: str) ->
 
 
 def get_thread_messages(thread_id: str) -> list[dict[str, Any]]:
+    """Retrieve all messages for a given thread, ordered by timestamp."""
     with get_db() as conn:
         cursor = conn.execute(
             "SELECT message_id, role, content, timestamp FROM messages "
@@ -76,9 +80,10 @@ def upsert_pet_profile(profile: dict[str, Any]) -> None:
         )
 
 
-def record_perception_event(pet_id: str, payload: dict[str, Any], workflow: str, thread_id: str) -> str:
-    import json
-
+def record_perception_event(
+    pet_id: str, payload: dict[str, Any], workflow: str, thread_id: str
+) -> str:
+    """Log a perception event for audit/history."""
     event_id = str(uuid.uuid4())
     with get_db() as conn:
         conn.execute(

@@ -132,7 +132,10 @@ async def build_deep_agent(mode_config: dict | None = None, extra_tools=None):
     """Build a fresh create_deep_agent instance (async: MCP discovery + tool groups)."""
     tool_groups = await build_tool_groups(extra_tools)
     all_tools = [tool for tools in tool_groups.values() for tool in tools]
-    tool_docs = "\n".join(f"- {t.name}: {t.description}" for t in all_tools) or "(none discovered)"
+    tool_docs = (
+        "\n".join(f"- {t.name}: {t.description}" for t in all_tools)
+        or "(none discovered)"
+    )
 
     subagent_configs = build_subagent_configs(tool_groups)
 
@@ -154,7 +157,7 @@ async def build_deep_agent(mode_config: dict | None = None, extra_tools=None):
 
 async def get_or_build_agent(mode: str = DEFAULT_MODE):
     """Return the cached agent, building it (with a lock) on first use."""
-    global _AGENT
+    global _AGENT  # pylint: disable=global-statement
     if _AGENT is not None:
         return _AGENT
 
@@ -169,7 +172,9 @@ async def get_or_build_agent(mode: str = DEFAULT_MODE):
 # ---------------------------------------------------------------------------
 
 
-async def run_agent(body: RunAgentInput, agent=None) -> AsyncIterator[str]:
+async def run_agent(  # pylint: disable=too-many-locals
+    body: RunAgentInput, agent=None
+) -> AsyncIterator[str]:
     """Receive a RunAgentInput, run the agentic loop, yield AG-UI SSE strings."""
     thread_id = body.thread_id
     run_id = body.run_id
@@ -201,7 +206,9 @@ async def run_agent(body: RunAgentInput, agent=None) -> AsyncIterator[str]:
 
         todos = _extract_todos_from_state(state)
         snapshot_payload = {"todos": todos}
-        snapshot_key = json.dumps(snapshot_payload, sort_keys=True, default=_json_default)
+        snapshot_key = json.dumps(
+            snapshot_payload, sort_keys=True, default=_json_default
+        )
         if snapshot_key == last_state_snapshot:
             return None
 
@@ -211,7 +218,9 @@ async def run_agent(body: RunAgentInput, agent=None) -> AsyncIterator[str]:
     try:
         messages = to_lc_messages(body.messages)
 
-        async for event in agent.astream_events({"messages": messages}, config=config, version="v2"):
+        async for event in agent.astream_events(
+            {"messages": messages}, config=config, version="v2"
+        ):
             kind = event.get("event", "")
             data = event.get("data", {})
 
@@ -271,7 +280,9 @@ async def run_agent(body: RunAgentInput, agent=None) -> AsyncIterator[str]:
     assistant_content = "".join(assistant_content_parts).strip()
     if assistant_content:
         try:
-            persist_message(str(uuid.uuid4()), thread_id, "assistant", assistant_content)
+            persist_message(
+                str(uuid.uuid4()), thread_id, "assistant", assistant_content
+            )
         except Exception:
             pass
 

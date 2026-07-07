@@ -81,7 +81,9 @@ def build_server_specs() -> list[MCPServerSpec]:
         if transport == "stdio":
             command = _env(f"MCP_{upper}_COMMAND")
             if not command:
-                print(f"[mcp] skipping '{name}': stdio transport requires MCP_{upper}_COMMAND")
+                print(
+                    f"[mcp] skipping '{name}': stdio transport requires MCP_{upper}_COMMAND"
+                )
                 continue
             raw_args = _env(f"MCP_{upper}_ARGS") or ""
             specs.append(

@@ -71,7 +71,9 @@ if __name__ == "__main__":
     import inspect
 
     test_functions = [
-        obj for name, obj in list(globals().items()) if name.startswith("test_") and inspect.isfunction(obj)
+        obj
+        for name, obj in list(globals().items())
+        if name.startswith("test_") and inspect.isfunction(obj)
     ]
     failures = 0
     for fn in test_functions:

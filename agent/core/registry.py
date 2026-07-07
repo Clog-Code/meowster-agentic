@@ -9,7 +9,12 @@ from __future__ import annotations
 from langchain_core.tools import BaseTool
 
 from ..mcp import discover_mcp_tools
-from ..tools import CALENDAR_TOOLS, COMMERCE_TOOLS, COMMUNICATION_TOOLS, PET_PROFILE_TOOLS
+from ..tools import (
+    CALENDAR_TOOLS,
+    COMMERCE_TOOLS,
+    COMMUNICATION_TOOLS,
+    PET_PROFILE_TOOLS,
+)
 
 # Native tool groups, keyed by the group name subagent AGENT.md files
 # reference in their `tools:` frontmatter field.
@@ -21,7 +26,9 @@ _NATIVE_TOOL_GROUPS: dict[str, list[BaseTool]] = {
 }
 
 
-async def build_tool_groups(extra_tools: list[BaseTool] | None = None) -> dict[str, list[BaseTool]]:
+async def build_tool_groups(
+    extra_tools: list[BaseTool] | None = None,
+) -> dict[str, list[BaseTool]]:
     """
     Build the full name -> tool-list mapping used both for the orchestrator's
     flat tool list and for assigning tool groups to subagents.

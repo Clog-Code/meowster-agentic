@@ -37,11 +37,11 @@ from pydantic import BaseModel
 # MCP_SERVERS, and other env‑based settings are available.
 load_dotenv()
 
-from agent.core import parse_perception_payload, run_agent
+from agent.core import parse_perception_payload, run_agent  # noqa: E402  # pylint: disable=wrong-import-position
 
-from .config import BASE_DIR, CORS_ALLOW_ORIGINS, PERCEPTION_INGEST_TOKEN
-from .db import init_db
-from .services import ensure_thread, record_perception_event
+from .config import BASE_DIR, CORS_ALLOW_ORIGINS, PERCEPTION_INGEST_TOKEN  # noqa: E402  # pylint: disable=wrong-import-position
+from .db import init_db  # noqa: E402  # pylint: disable=wrong-import-position
+from .services import ensure_thread, record_perception_event  # noqa: E402  # pylint: disable=wrong-import-position
 
 app = FastAPI(title="Pet Companion — Module 2 (Autonomous Intervention)")
 
@@ -84,6 +84,8 @@ async def agent_run(request: Request):
 
 
 class PerceptionPayload(BaseModel):
+    """Wire format for the Module-1 perception webhook payload."""
+
     pet_id: str
     species: str
     emotion: str | None = None
@@ -108,7 +110,9 @@ async def perception_webhook(
     if PERCEPTION_INGEST_TOKEN:
         expected = f"Bearer {PERCEPTION_INGEST_TOKEN}"
         if authorization != expected:
-            raise HTTPException(status_code=401, detail="Invalid or missing perception token.")
+            raise HTTPException(
+                status_code=401, detail="Invalid or missing perception token."
+            )
 
     event = parse_perception_payload(payload.model_dump())
     workflow = event.classify()
@@ -116,7 +120,9 @@ async def perception_webhook(
     run_id = str(uuid.uuid4())
 
     ensure_thread(thread_id)
-    record_perception_event(event.pet_id, payload.model_dump(), workflow.value, thread_id)
+    record_perception_event(
+        event.pet_id, payload.model_dump(), workflow.value, thread_id
+    )
 
     body = RunAgentInput.model_validate(
         {
@@ -149,8 +155,11 @@ async def perception_webhook(
 
 
 @app.get("/healthz")
-def healthz():
+def healthz() -> dict[str, str]:
+    """Liveness check."""
     return {"status": "ok"}
 
 
-app.mount("/", StaticFiles(directory=str(BASE_DIR / "static"), html=True), name="static")
+app.mount(
+    "/", StaticFiles(directory=str(BASE_DIR / "static"), html=True), name="static"
+)

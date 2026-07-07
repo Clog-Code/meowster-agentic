@@ -30,7 +30,7 @@ AG-UI SSE events  ──►  static/ test page  or  Flutter app
 
 ```bash
 cp .env.example .env   # fill in all values
-uv pip install -r requirements.txt
+uv sync
 ```
 
 Run it:
@@ -107,5 +107,5 @@ pet-module2-agent/
 ├── static/                # dev-only AG-UI test harness (not the product frontend)
 ├── tests/
 ├── .env.example
-└── requirements.txt
+└── pyproject.toml
 ```

@@ -11,7 +11,7 @@ from .tools.commerce import COMMERCE_TOOLS
 from .tools.communication import COMMUNICATION_TOOLS
 from .tools.pet_profile import PET_PROFILE_TOOLS
 
-__all__ = [
+__all__ = [  # pylint: disable=duplicate-code
     "CALENDAR_TOOLS",
     "COMMERCE_TOOLS",
     "COMMUNICATION_TOOLS",

@@ -10,7 +10,9 @@ API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8000"))
 
 CORS_ALLOW_ORIGINS = [
-    origin.strip() for origin in os.getenv("CORS_ALLOW_ORIGINS", "*").split(",") if origin.strip()
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOW_ORIGINS", "*").split(",")
+    if origin.strip()
 ]
 
 PERCEPTION_INGEST_TOKEN = os.getenv("PERCEPTION_INGEST_TOKEN", "")

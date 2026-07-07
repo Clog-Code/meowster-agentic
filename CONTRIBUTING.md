@@ -22,17 +22,17 @@
    ```bash
    uv run ruff check . --fix
    uv run ruff format .
-   uv run pyright backend/ agent/
-   uv run pylint backend/ agent/
+   uv run pyright backend/ agent/ examples/
+   uv run pylint backend/ agent/ examples/
    ```
 
    Then do a final dry run to confirm what CI will see:
 
    ```bash
-   uv run ruff check .              # should print: All checks passed.
-   uv run ruff format --check .     # should print: N files already formatted
-   uv run pyright backend/ agent/   # should print: 0 errors
-   uv run pylint backend/ agent/    # should print: 10.00/10
+   uv run ruff check .                        # should print: All checks passed.
+   uv run ruff format --check .               # should print: N files already formatted
+   uv run pyright backend/ agent/ examples/   # should print: 0 errors
+   uv run pylint backend/ agent/ examples/    # should print: 10.00/10
    ```
 
    **Frontend:**

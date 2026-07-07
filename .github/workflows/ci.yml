@@ -67,10 +67,10 @@ jobs:
               run: uv run ruff format --check .
 
             - name: Type check with pyright
-              run: uv run pyright backend/ agent/
+              run: uv run pyright backend/ agent/ examples/
 
             - name: Lint (pylint)
-              run: uv run pylint backend/ agent/
+              run: uv run pylint backend/ agent/ examples/
               continue-on-error: true
 
             - name: Run tests

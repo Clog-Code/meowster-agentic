@@ -42,7 +42,9 @@ def _load_subagent_data(agent_dir: Path) -> tuple[dict[str, Any], str]:
     return yaml.safe_load(metadata_raw), system_prompt
 
 
-def build_subagent_configs(tool_groups: dict[str, list[BaseTool]]) -> list[dict[str, Any]]:
+def build_subagent_configs(
+    tool_groups: dict[str, list[BaseTool]],
+) -> list[dict[str, Any]]:
     """
     Discover every subagent directory and parse its AGENT.md, resolving its
     declared tool groups against the live `tool_groups` mapping (native +
@@ -66,7 +68,9 @@ def build_subagent_configs(tool_groups: dict[str, list[BaseTool]]) -> list[dict[
 
         tools_raw = metadata.get("tools", "")
         tool_keys = (
-            tools_raw if isinstance(tools_raw, list) else [t.strip() for t in tools_raw.split(",") if t.strip()]
+            tools_raw
+            if isinstance(tools_raw, list)
+            else [t.strip() for t in tools_raw.split(",") if t.strip()]
         )
 
         assigned_tools: list[BaseTool] = []

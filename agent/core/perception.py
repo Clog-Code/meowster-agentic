@@ -36,6 +36,8 @@ from enum import Enum
 
 
 class WorkflowKind(str, Enum):
+    """The autonomous-intervention workflow triggered by a perception event."""
+
     HEALTH_EMERGENCY = "health_emergency"
     SUPPLY_SHORTAGE = "supply_shortage"
     INFO_ONLY = "info_only"
@@ -57,6 +59,8 @@ _HEALTH_TRIGGER_LABELS = {
 
 @dataclass
 class PerceptionEvent:
+    """Normalised representation of a Module-1 perception payload."""
+
     pet_id: str
     species: str
     emotion: str | None = None

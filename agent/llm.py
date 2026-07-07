@@ -45,7 +45,9 @@ def build_llm(
 
     # Start with defaults, then let mode_config override anything it specifies.
     resolved: dict = {
-        "temperature": temperature if temperature is not None else float(LLM_DEFAULTS["temperature"]),
+        "temperature": temperature
+        if temperature is not None
+        else float(LLM_DEFAULTS["temperature"]),
         "max_tokens": int(LLM_DEFAULTS["max_tokens"]),
     }
     model_kwargs: dict = {}

@@ -13,10 +13,15 @@ Requires: `pip install langchain-mcp-adapters`
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING, cast
 
 from langchain_core.tools import BaseTool
+from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from .config import build_server_specs
+
+if TYPE_CHECKING:
+    from langchain_mcp_adapters.sessions import Connection
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +38,7 @@ async def discover_mcp_tools(force: bool = False) -> dict[str, list[BaseTool]]:
     Safe to call multiple times — results are cached after the first
     successful discovery unless `force=True`.
     """
-    global _DISCOVERED
+    global _DISCOVERED  # pylint: disable=global-statement
 
     if _DISCOVERED and not force:
         return _TOOLS_BY_SERVER
@@ -47,15 +52,10 @@ async def discover_mcp_tools(force: bool = False) -> dict[str, list[BaseTool]]:
         _DISCOVERED = True
         return _TOOLS_BY_SERVER
 
-    try:
-        from langchain_mcp_adapters.client import MultiServerMCPClient
-    except ImportError as exc:
-        raise RuntimeError(
-            "langchain-mcp-adapters is not installed. Run: "
-            "pip install langchain-mcp-adapters"
-        ) from exc
-
-    connections = {spec.name: spec.to_langchain_mcp_connection() for spec in specs}
+    connections: "dict[str, Connection]" = cast(
+        "dict[str, Connection]",
+        {spec.name: spec.to_langchain_mcp_connection() for spec in specs},
+    )
     client = MultiServerMCPClient(connections)
 
     for spec in specs:
@@ -69,7 +69,9 @@ async def discover_mcp_tools(force: bool = False) -> dict[str, list[BaseTool]]:
                 ", ".join(t.name for t in server_tools) or "(none)",
             )
         except Exception:
-            logger.exception("Failed to load tools from MCP server '%s' — skipping.", spec.name)
+            logger.exception(
+                "Failed to load tools from MCP server '%s' — skipping.", spec.name
+            )
             _TOOLS_BY_SERVER[spec.name] = []
 
     _DISCOVERED = True
