@@ -43,6 +43,20 @@ CREATE TABLE IF NOT EXISTS perception_events (
     thread_id   TEXT,
     created_at  TEXT DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS oauth_tokens (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    provider       TEXT NOT NULL,
+    thread_id      TEXT NOT NULL,
+    scope          TEXT,
+    access_token   TEXT NOT NULL,
+    refresh_token  TEXT NOT NULL,
+    token_expiry   TEXT,
+    user_email     TEXT,
+    created_at     TEXT DEFAULT (datetime('now')),
+    updated_at     TEXT DEFAULT (datetime('now')),
+    UNIQUE(provider, thread_id)
+);
 """
 
 

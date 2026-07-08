@@ -14,7 +14,15 @@
    ```bash
    git checkout -b feat/my-feature
    ```
-2. Make your changes, then **before committing**, run this sequence:
+
+2. Install dependencies (first time only):
+
+   ```bash
+   uv sync
+   npm install
+   ```
+
+3. Make your changes, then **before committing**, run this sequence:
 
    **Python — fix, format, verify:**
 
@@ -34,11 +42,11 @@
    uv run pylint . --recursive=y --ignore=.venv,node_modules   # should print: 10.00/10
    ```
 
-   **Frontend:**
+   **Node.js:**
 
    ```bash
-   npm run lint                   							        # ESLint + TypeScript
-   npm run test                    						           # Vitest
+   npm run lint
+   npm run test
    ```
 
    **Python tests:**
@@ -46,8 +54,9 @@
    ```bash
    uv run pytest
    ```
-3. Push and open a pull request against `main`. The CI pipeline runs automatically and will fail if lint or format checks don't pass.
-4. Squash-merge after approval.
+
+4. Push and open a pull request against `main`. The CI pipeline runs automatically and will fail if lint or format checks don't pass.
+5. Squash-merge after approval.
 
 > **Note on unused imports (`F401`):** ruff's `--fix` intentionally skips removing unused imports because `__init__.py` files use them for re-exports. If ruff reports an `F401` violation after running `--fix`, remove that import manually.
 
@@ -58,6 +67,10 @@
 - **Run locally:** To reproduce CI checks locally, run the same commands described above (use `uv` for Python tasks and `npm` for frontend):
 
 ```bash
+# Dependencies
+uv sync
+npm install
+
 # Python checks
 uv run ruff check . --fix
 uv run ruff format --check .
@@ -65,8 +78,7 @@ uv run pyright .
 uv run pylint . --recursive=y --ignore=.venv,node_modules
 uv run pytest -v
 
-# Frontend checks
-npm run setup
+# Node.js checks
 npm run lint
 npm run test
 ```
@@ -102,14 +114,14 @@ Examples:
 
 | Set       | What it catches                                              |
 | --------- | ------------------------------------------------------------ |
-| `E / W` | PEP 8 style errors                                           |
-| `F`     | Undefined names, unused imports                              |
-| `I`     | Import ordering (isort-compatible)                           |
-| `UP`    | Syntax that can be modernised for Python 3.13                |
-| `B`     | Common bug patterns (bare`except`, mutable defaults, etc.) |
-| `ASYNC` | Blocking calls inside`async def`                           |
-| `SIM`   | Simplifiable expressions                                     |
-| `RUF`   | Ruff-native best practices                                   |
+| `E / W`   | PEP 8 style errors                                           |
+| `F`       | Undefined names, unused imports                              |
+| `I`       | Import ordering (isort-compatible)                           |
+| `UP`      | Syntax that can be modernised for Python 3.13                |
+| `B`       | Common bug patterns (bare`except`, mutable defaults, etc.)   |
+| `ASYNC`   | Blocking calls inside`async def`                             |
+| `SIM`     | Simplifiable expressions                                     |
+| `RUF`     | Ruff-native best practices                                   |
 
 General guidelines:
 

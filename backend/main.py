@@ -2,23 +2,14 @@
 Single FastAPI service for Module 2 (Autonomous Intervention).
 
 Routes:
-  POST /agent        AG-UI run endpoint. Body is an AG-UI RunAgentInput
-                      (thread_id, run_id, messages, ...). Streams back
-                      AG-UI SSE events. This is what the Flutter app (or
-                      the /static test page) talks to.
+  POST /agent              AG-UI run endpoint — accepts RunAgentInput,
+                            streams AG-UI SSE events.
+  POST /perception          Webhook for the ML teammate's module (Module 1).
+  GET  /healthz             Liveness check.
+  GET  /                    Serves the static AG-UI test page.
 
-  POST /perception    Webhook the ML teammate's module (Module 1) calls
-                      with a structured JSON summary of what it detected.
-                      Internally converts it into an AG-UI run and streams
-                      the same SSE event vocabulary back, so it can be
-                      called either fire-and-forget or relayed onward to a
-                      live frontend connection.
-
-  GET  /healthz       Liveness check.
-  GET  /              Serves the static AG-UI test page.
-
-MCP servers are self-discovered from .env (see agent/mcp/config.py) the
-first time the agent is built — no code changes needed to add a new plugin.
+Sub-routers:
+  /auth                     OAuth endpoints (see backend/api/auth.py).
 """
 
 from __future__ import annotations
@@ -39,6 +30,7 @@ load_dotenv()
 
 from agent.core import parse_perception_payload, run_agent  # noqa: E402  # pylint: disable=wrong-import-position
 
+from .api.auth import router as auth_router  # noqa: E402  # pylint: disable=wrong-import-position
 from .config import BASE_DIR, CORS_ALLOW_ORIGINS, PERCEPTION_INGEST_TOKEN  # noqa: E402  # pylint: disable=wrong-import-position
 from .db import init_db  # noqa: E402  # pylint: disable=wrong-import-position
 from .services import ensure_thread, record_perception_event  # noqa: E402  # pylint: disable=wrong-import-position
@@ -52,6 +44,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
 
 
 @app.on_event("startup")

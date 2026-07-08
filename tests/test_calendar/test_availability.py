@@ -7,14 +7,15 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-
 import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from agent.tools.calendar.availability_tool import (
     _compute_free_slots,
     _parse_dt,
     get_user_availability,
+    list_calendar_events,
 )
 
 # ---------------------------------------------------------------------------
@@ -23,21 +24,25 @@ from agent.tools.calendar.availability_tool import (
 
 
 def test_parse_dt_parses_iso_datetime():
+    """Parses a full ISO datetime string with timezone."""
     dt = _parse_dt("2026-07-08T14:30:00+00:00")
     assert dt == datetime(2026, 7, 8, 14, 30, tzinfo=UTC)
 
 
 def test_parse_dt_parses_date_only():
+    """Parses a date-only string, defaulting to midnight UTC."""
     dt = _parse_dt("2026-07-08")
     assert dt == datetime(2026, 7, 8, tzinfo=UTC)
 
 
 def test_parse_dt_naive_datetime_gets_utc():
+    """Attaches UTC to naive datetime strings."""
     dt = _parse_dt("2026-07-08T10:00:00")
     assert dt.tzinfo is UTC
 
 
 def test_parse_dt_handles_z_suffix():
+    """Handles ISO datetime with Z suffix."""
     dt = _parse_dt("2026-07-08T10:00:00Z")
     assert dt == datetime(2026, 7, 8, 10, 0, tzinfo=UTC)
 
@@ -60,6 +65,7 @@ def _slot(
 
 
 def test_compute_free_slots_no_busy_periods():
+    """Returns the full business day when there are no busy periods."""
     start = datetime(2026, 7, 8, 0, 0, tzinfo=UTC)
     end = datetime(2026, 7, 8, 23, 59, tzinfo=UTC)
     slots = _compute_free_slots(start, end, [])
@@ -69,6 +75,7 @@ def test_compute_free_slots_no_busy_periods():
 
 
 def test_compute_free_slots_with_busy_midday():
+    """Splits free slots around a midday busy period."""
     start = datetime(2026, 7, 8, 0, 0, tzinfo=UTC)
     end = datetime(2026, 7, 8, 23, 59, tzinfo=UTC)
     busy = [_slot(12, 13)]
@@ -85,6 +92,7 @@ def test_compute_free_slots_with_busy_midday():
 
 
 def test_compute_free_slots_merges_overlapping_busy():
+    """Merges overlapping busy periods before computing free slots."""
     start = datetime(2026, 7, 8, 0, 0, tzinfo=UTC)
     end = datetime(2026, 7, 8, 23, 59, tzinfo=UTC)
     busy = [_slot(10, 12), _slot(11, 14)]
@@ -95,6 +103,7 @@ def test_compute_free_slots_merges_overlapping_busy():
 
 
 def test_compute_free_slots_filters_short_slots():
+    """Filters out free slots shorter than MIN_SLOT_MINUTES."""
     start = datetime(2026, 7, 8, 0, 0, tzinfo=UTC)
     end = datetime(2026, 7, 8, 23, 59, tzinfo=UTC)
     busy = [
@@ -108,6 +117,7 @@ def test_compute_free_slots_filters_short_slots():
 
 
 def test_compute_free_slots_busy_at_business_start():
+    """Handles busy periods that start exactly at business hours."""
     start = datetime(2026, 7, 8, 0, 0, tzinfo=UTC)
     end = datetime(2026, 7, 8, 23, 59, tzinfo=UTC)
     busy = [_slot(8, 13)]
@@ -117,6 +127,7 @@ def test_compute_free_slots_busy_at_business_start():
 
 
 def test_compute_free_slots_multiple_days():
+    """Correctly computes free slots across multiple days."""
     start = datetime(2026, 7, 8, 0, 0, tzinfo=UTC)
     end = datetime(2026, 7, 9, 23, 59, tzinfo=UTC)
     busy = [_slot(12, 13, "2026-07-08"), _slot(14, 15, "2026-07-09")]
@@ -130,6 +141,7 @@ def test_compute_free_slots_multiple_days():
 
 
 def test_stub_returns_mocked_slots():
+    """Returns stubbed free slots when provider is stub."""
     os.environ["CALENDAR_PROVIDER"] = "stub"
     result = get_user_availability.invoke(
         {"earliest": "2026-07-08", "latest": "2026-07-10"}
@@ -139,12 +151,70 @@ def test_stub_returns_mocked_slots():
 
 
 def test_stub_handles_invalid_date():
+    """Falls back gracefully when an invalid date is provided."""
     os.environ["CALENDAR_PROVIDER"] = "stub"
     result = get_user_availability.invoke(
         {"earliest": "not-a-date", "latest": "2026-07-10"}
     )
     assert result["source"] == "stubbed"
     assert len(result["free_slots"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# Live integration test — only runs when real Google creds are configured
+# ---------------------------------------------------------------------------
+
+HAS_GOOGLE_CALENDAR = (
+    os.getenv("CALENDAR_PROVIDER") == "google"
+    and os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON") is not None
+)
+
+
+# ---------------------------------------------------------------------------
+# list_calendar_events — stub fallback
+# ---------------------------------------------------------------------------
+
+
+def test_list_events_stub_returns_mocked_events():
+    """Returns stubbed events when provider is stub."""
+    os.environ["CALENDAR_PROVIDER"] = "stub"
+    result = list_calendar_events.invoke(
+        {"earliest": "2026-07-08", "latest": "2026-07-10"}
+    )
+    assert result["source"] == "stubbed"
+    assert len(result["events"]) == 2
+    for e in result["events"]:
+        assert "summary" in e
+        assert "start" in e
+        assert "end" in e
+
+
+def test_list_events_stub_handles_invalid_date():
+    """Falls back gracefully when an invalid date is provided."""
+    os.environ["CALENDAR_PROVIDER"] = "stub"
+    result = list_calendar_events.invoke(
+        {"earliest": "not-a-date", "latest": "2026-07-10"}
+    )
+    assert result["source"] == "stubbed"
+    assert len(result["events"]) > 0
+
+
+def test_calendar_tools_exported():
+    """Both tools are exported in CALENDAR_TOOLS."""
+    from agent.tools.calendar.availability_tool import CALENDAR_TOOLS
+
+    tool_names = {t.name for t in CALENDAR_TOOLS}
+    assert "get_user_availability" in tool_names
+    assert "list_calendar_events" in tool_names
+
+
+def test_calendar_tools_exports_via_package():
+    """CALENDAR_TOOLS is re-exported from the package __init__."""
+    from agent.tools.calendar import CALENDAR_TOOLS
+
+    tool_names = {t.name for t in CALENDAR_TOOLS}
+    assert "get_user_availability" in tool_names
+    assert "list_calendar_events" in tool_names
 
 
 # ---------------------------------------------------------------------------
@@ -167,3 +237,12 @@ def test_live_google_calendar():
     for s in result["free_slots"]:
         assert "start" in s
         assert "end" in s
+
+
+@pytest.mark.skipif(not HAS_GOOGLE_CALENDAR, reason="Google Calendar not configured")
+def test_live_list_calendar_events():
+    result = list_calendar_events.invoke(
+        {"earliest": "2026-07-08", "latest": "2026-07-10"}
+    )
+    assert result["source"] == "google_calendar", result.get("note", "")
+    assert "events" in result

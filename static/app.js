@@ -171,3 +171,46 @@ document.getElementById("send-perception").addEventListener("click", async () =>
 
   await consumeAgentStream(response);
 });
+
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+
+const authBadge = document.getElementById("auth-badge");
+const authBtn = document.getElementById("auth-btn");
+
+const OAUTH_URL = `/auth/google?thread_id=${threadId}`;
+
+async function checkAuth() {
+  try {
+    const res = await fetch(`/auth/me?thread_id=${threadId}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const hasGoogle = data.providers?.some((p) => p.provider === "google");
+    if (hasGoogle) {
+      authBadge.textContent = "✅ Calendar connected";
+      authBadge.className = "auth-badge connected";
+      authBtn.textContent = "Reconnect";
+    }
+  } catch {
+    // server not running etc — silently degrade
+  }
+}
+
+authBtn.addEventListener("click", () => {
+  const popup = window.open(OAUTH_URL, "google-oauth", "width=600,height=700,popup=1");
+  if (!popup || popup.closed) {
+    window.location.href = OAUTH_URL;
+  }
+});
+
+// Listen for postMessage from the OAuth popup so the badge updates
+// immediately instead of waiting for the next poll interval.
+window.addEventListener("message", (event) => {
+  if (event.data?.type === "oauth-connected") {
+    checkAuth();
+  }
+});
+
+// Poll auth status every 3 s as a fallback (e.g. if popup was blocked
+// and user navigated in the same tab, then came back).
+checkAuth();
+setInterval(checkAuth, 3000);

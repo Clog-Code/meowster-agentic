@@ -26,6 +26,13 @@ body {
 
 header h1 { font-size: 1.4rem; margin-bottom: 4px; }
 .subtitle { color: var(--muted); font-size: 0.85rem; margin-top: 0; }
+.header-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.auth-status { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.auth-badge { font-size: 0.78rem; padding: 4px 10px; border-radius: 12px; background: var(--panel); border: 1px solid var(--border); }
+.auth-badge.connected { border-color: #4caf50; color: #4caf50; }
+.auth-badge.disconnected { border-color: var(--muted); color: var(--muted); }
+.auth-btn { background: #4285f4; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.auth-btn:hover { opacity: 0.9; }
 
 .panel {
   background: var(--panel);

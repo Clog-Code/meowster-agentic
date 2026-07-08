@@ -80,6 +80,55 @@ def upsert_pet_profile(profile: dict[str, Any]) -> None:
         )
 
 
+def store_oauth_token(
+    thread_id: str, provider: str, token_data: dict[str, Any]
+) -> None:
+    """Persist OAuth tokens for a provider+thread combination."""
+    with get_db() as conn:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO oauth_tokens
+                (provider, thread_id, scope, access_token, refresh_token,
+                 token_expiry, user_email, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            """,
+            (
+                provider,
+                thread_id,
+                token_data.get("scope"),
+                token_data["access_token"],
+                token_data.get("refresh_token", ""),
+                token_data.get("expiry"),
+                token_data.get("user_email"),
+            ),
+        )
+
+
+def get_oauth_token(thread_id: str, provider: str) -> dict[str, Any] | None:
+    """Retrieve stored OAuth tokens for a provider+thread."""
+    with get_db() as conn:
+        cursor = conn.execute(
+            """
+            SELECT provider, thread_id, scope, access_token, refresh_token,
+                   token_expiry, user_email
+            FROM oauth_tokens
+            WHERE provider = ? AND thread_id = ?
+            """,
+            (provider, thread_id),
+        )
+        row = cursor.fetchone()
+    return dict(row) if row else None
+
+
+def delete_oauth_token(thread_id: str, provider: str) -> None:
+    """Remove stored OAuth tokens (e.g. on disconnect)."""
+    with get_db() as conn:
+        conn.execute(
+            "DELETE FROM oauth_tokens WHERE provider = ? AND thread_id = ?",
+            (provider, thread_id),
+        )
+
+
 def record_perception_event(
     pet_id: str, payload: dict[str, Any], workflow: str, thread_id: str
 ) -> str:
