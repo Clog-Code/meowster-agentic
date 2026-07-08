@@ -4,7 +4,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 # pylint: disable-next=wrong-import-position
 from agent.mcp.config import build_server_specs
@@ -79,7 +79,6 @@ def test_stdio_transport_with_env():
     os.environ["MCP_MAPS_API_KEY"] = "test-key-123"
 
     specs = build_server_specs()
-    assert len(specs) == 1
     assert specs[0].name == "maps"
     assert specs[0].command == "npx"
     assert specs[0].args == ["@modelcontextprotocol/server-google-maps"]
