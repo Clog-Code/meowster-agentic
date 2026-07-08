@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+# pylint: disable=wrong-import-position
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from agent.tools.calendar.availability_tool import (
@@ -201,6 +202,7 @@ def test_list_events_stub_handles_invalid_date():
 
 def test_calendar_tools_exported():
     """Both tools are exported in CALENDAR_TOOLS."""
+    # pylint: disable=import-outside-toplevel
     from agent.tools.calendar.availability_tool import CALENDAR_TOOLS
 
     tool_names = {t.name for t in CALENDAR_TOOLS}
@@ -210,6 +212,7 @@ def test_calendar_tools_exported():
 
 def test_calendar_tools_exports_via_package():
     """CALENDAR_TOOLS is re-exported from the package __init__."""
+    # pylint: disable=import-outside-toplevel
     from agent.tools.calendar import CALENDAR_TOOLS
 
     tool_names = {t.name for t in CALENDAR_TOOLS}
@@ -217,18 +220,9 @@ def test_calendar_tools_exports_via_package():
     assert "list_calendar_events" in tool_names
 
 
-# ---------------------------------------------------------------------------
-# Live integration test — only runs when real Google creds are configured
-# ---------------------------------------------------------------------------
-
-HAS_GOOGLE_CALENDAR = (
-    os.getenv("CALENDAR_PROVIDER") == "google"
-    and os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON") is not None
-)
-
-
 @pytest.mark.skipif(not HAS_GOOGLE_CALENDAR, reason="Google Calendar not configured")
 def test_live_google_calendar():
+    """Runs live calendar availability test when Google Calendar is configured."""
     result = get_user_availability.invoke(
         {"earliest": "2026-07-08", "latest": "2026-07-10"}
     )
@@ -241,6 +235,7 @@ def test_live_google_calendar():
 
 @pytest.mark.skipif(not HAS_GOOGLE_CALENDAR, reason="Google Calendar not configured")
 def test_live_list_calendar_events():
+    """Runs live calendar events test when Google Calendar is configured."""
     result = list_calendar_events.invoke(
         {"earliest": "2026-07-08", "latest": "2026-07-10"}
     )

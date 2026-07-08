@@ -209,7 +209,11 @@ def _query_calendar(
     if end_dt - start_dt > timedelta(days=MAX_RANGE_DAYS):
         end_dt = start_dt + timedelta(days=MAX_RANGE_DAYS)
 
-    calendar_id = os.getenv("GOOGLE_CALENDAR_ID") or "primary"
+    calendar_id = (
+        "primary"
+        if source == "user_oauth"
+        else os.getenv("GOOGLE_CALENDAR_ID") or "primary"
+    )
 
     try:
         busy = _fetch_busy_periods(service, calendar_id, start_dt, end_dt)
@@ -506,10 +510,14 @@ def _fetch_events(
     if end_dt - start_dt > timedelta(days=MAX_RANGE_DAYS):
         end_dt = start_dt + timedelta(days=MAX_RANGE_DAYS)
 
-    calendar_id = os.getenv("GOOGLE_CALENDAR_ID") or "primary"
+    calendar_id = (
+        "primary"
+        if source == "user_oauth"
+        else os.getenv("GOOGLE_CALENDAR_ID") or "primary"
+    )
 
     try:
-        events_raw = (
+        items = (
             service.events()
             .list(
                 calendarId=calendar_id,
@@ -519,8 +527,8 @@ def _fetch_events(
                 orderBy="startTime",
             )
             .execute()
+            .get("items", [])
         )
-        items = events_raw.get("items", [])
         events: list[dict[str, str]] = []
         for item in items:
             start = item.get("start", {})
