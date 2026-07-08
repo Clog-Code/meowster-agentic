@@ -14,7 +14,6 @@
    ```bash
    git checkout -b feat/my-feature
    ```
-
 2. Make your changes, then **before committing**, run this sequence:
 
    **Python — fix, format, verify:**
@@ -22,24 +21,24 @@
    ```bash
    uv run ruff check . --fix
    uv run ruff format .
-   uv run pyright backend/ agent/ examples/
-   uv run pylint backend/ agent/ examples/
+   uv run pyright .
+   uv run pylint . --recursive=y --ignore=.venv,node_modules
    ```
 
    Then do a final dry run to confirm what CI will see:
 
    ```bash
-   uv run ruff check .                        # should print: All checks passed.
-   uv run ruff format --check .               # should print: N files already formatted
-   uv run pyright backend/ agent/ examples/   # should print: 0 errors
-   uv run pylint backend/ agent/ examples/    # should print: 10.00/10
+   uv run ruff check .                                         # should print: All checks passed.
+   uv run ruff format --check .                                # should print: N files already formatted
+   uv run pyright .                                            # should print: 0 errors
+   uv run pylint . --recursive=y --ignore=.venv,node_modules   # should print: 10.00/10
    ```
 
    **Frontend:**
 
    ```bash
-   npm run lint                     # ESLint + TypeScript
-   npm run test                     # Vitest
+   npm run lint                   							        # ESLint + TypeScript
+   npm run test                    						           # Vitest
    ```
 
    **Python tests:**
@@ -47,7 +46,6 @@
    ```bash
    uv run pytest
    ```
-
 3. Push and open a pull request against `main`. The CI pipeline runs automatically and will fail if lint or format checks don't pass.
 4. Squash-merge after approval.
 
@@ -63,9 +61,9 @@
 # Python checks
 uv run ruff check . --fix
 uv run ruff format --check .
-uv run pyright backend/ agent/
-uv run pylint backend/ agent/
-uv run pytest backend/ agent/ -v
+uv run pyright .
+uv run pylint . --recursive=y --ignore=.venv,node_modules
+uv run pytest -v
 
 # Frontend checks
 npm run setup
@@ -104,14 +102,14 @@ Examples:
 
 | Set       | What it catches                                              |
 | --------- | ------------------------------------------------------------ |
-| `E / W`   | PEP 8 style errors                                           |
-| `F`       | Undefined names, unused imports                              |
-| `I`       | Import ordering (isort-compatible)                           |
-| `UP`      | Syntax that can be modernised for Python 3.13                |
-| `B`       | Common bug patterns (bare`except`, mutable defaults, etc.)   |
-| `ASYNC`   | Blocking calls inside`async def`                             |
-| `SIM`     | Simplifiable expressions                                     |
-| `RUF`     | Ruff-native best practices                                   |
+| `E / W` | PEP 8 style errors                                           |
+| `F`     | Undefined names, unused imports                              |
+| `I`     | Import ordering (isort-compatible)                           |
+| `UP`    | Syntax that can be modernised for Python 3.13                |
+| `B`     | Common bug patterns (bare`except`, mutable defaults, etc.) |
+| `ASYNC` | Blocking calls inside`async def`                           |
+| `SIM`   | Simplifiable expressions                                     |
+| `RUF`   | Ruff-native best practices                                   |
 
 General guidelines:
 

@@ -33,15 +33,15 @@ jobs:
               run: uv run ruff format --check .
 
             - name: Type check with pyright
-              run: uv run pyright backend/ agent/ examples/
+              run: uv run pyright .
 
             - name: Lint (pylint)
-              run: uv run pylint backend/ agent/ examples/
+              run: uv run pylint . --recursive=y --ignore=.venv,node_modules
               continue-on-error: true
 
             - name: Run tests
               run: |
-                  if uv run pytest backend/ agent/ -v; then
+                  if uv run pytest -v; then
                     exit 0
                   fi
 
