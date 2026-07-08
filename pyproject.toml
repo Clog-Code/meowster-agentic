@@ -23,13 +23,28 @@ lint = [
     "pylint>=4.0.5",
     "ruff>=0.15.12",
 ]
+dev = [
+    "pytest>=8.0",
+]
+test = [
+    "pytest>=8.0",
+]
 
 [tool.pylint.main]
 disable = [
     "broad-exception-caught",
+    "duplicate-code",
     "too-many-arguments",
     "too-many-branches",
     "too-many-instance-attributes",
     "too-many-positional-arguments",
     "too-many-statements"
+]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.6",
+    "pyright>=1.1.411",
+    "pytest>=9.1.1",
+    "ruff>=0.15.20",
 ]

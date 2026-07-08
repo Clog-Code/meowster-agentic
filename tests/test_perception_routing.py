@@ -5,10 +5,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# pylint: disable-next=wrong-import-position
 from agent.core.perception import WorkflowKind, parse_perception_payload
 
 
 def test_health_flags_trigger_emergency():
+    """Health flags should produce a HEALTH_EMERGENCY classification."""
     event = parse_perception_payload(
         {"pet_id": "p1", "species": "dog", "health_flags": ["limping"]}
     )
@@ -16,6 +18,7 @@ def test_health_flags_trigger_emergency():
 
 
 def test_distress_emotion_triggers_emergency():
+    """Distress emotion with high confidence triggers emergency."""
     event = parse_perception_payload(
         {
             "pet_id": "p1",
@@ -28,6 +31,7 @@ def test_distress_emotion_triggers_emergency():
 
 
 def test_empty_food_triggers_supply_shortage():
+    """Empty food level triggers supply shortage."""
     event = parse_perception_payload(
         {"pet_id": "p1", "species": "dog", "food_level": "empty"}
     )
@@ -35,6 +39,7 @@ def test_empty_food_triggers_supply_shortage():
 
 
 def test_low_water_triggers_supply_shortage():
+    """Low water level triggers supply shortage."""
     event = parse_perception_payload(
         {"pet_id": "p1", "species": "dog", "water_level": "low"}
     )
@@ -42,6 +47,7 @@ def test_low_water_triggers_supply_shortage():
 
 
 def test_normal_state_is_info_only():
+    """Normal state with no flags produces INFO_ONLY."""
     event = parse_perception_payload(
         {
             "pet_id": "p1",
@@ -55,6 +61,7 @@ def test_normal_state_is_info_only():
 
 
 def test_health_flags_take_priority_over_supply():
+    """Health flags override supply shortages in priority."""
     event = parse_perception_payload(
         {
             "pet_id": "p1",
@@ -67,29 +74,10 @@ def test_health_flags_take_priority_over_supply():
 
 
 def test_orchestrator_message_mentions_workflow():
+    """Orchestrator message contains the detected workflow type and pet id."""
     event = parse_perception_payload(
         {"pet_id": "buddy-01", "species": "dog", "health_flags": ["limping"]}
     )
     message = event.to_orchestrator_message()
     assert "detected_workflow: health_emergency" in message
     assert "buddy-01" in message
-
-
-if __name__ == "__main__":
-    import inspect
-
-    test_functions = [
-        obj
-        for name, obj in list(globals().items())
-        if name.startswith("test_") and inspect.isfunction(obj)
-    ]
-    failures = 0
-    for fn in test_functions:
-        try:
-            fn()
-            print(f"PASS  {fn.__name__}")
-        except AssertionError:
-            failures += 1
-            print(f"FAIL  {fn.__name__}")
-    print(f"\n{len(test_functions) - failures}/{len(test_functions)} passed")
-    sys.exit(1 if failures else 0)

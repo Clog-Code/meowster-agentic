@@ -6,6 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+# pylint: disable-next=wrong-import-position
 from agent.mcp.config import build_server_specs
 
 
@@ -16,6 +17,7 @@ def _clear_mcp_env():
 
 
 def test_discovers_http_server_from_env():
+    """Discover an HTTP-based MCP server from env vars."""
     _clear_mcp_env()
     os.environ["MCP_SERVERS"] = "maps"
     os.environ["MCP_MAPS_URL"] = "https://example.com/mcp"
@@ -31,12 +33,13 @@ def test_discovers_http_server_from_env():
 
 
 def test_skips_server_missing_url():
+    """Skip a server entry when its URL env var is not set."""
     _clear_mcp_env()
     os.environ["MCP_SERVERS"] = "wikipedia"
     # MCP_WIKIPEDIA_URL intentionally not set
 
     specs = build_server_specs()
-    assert specs == []
+    assert not specs
 
 
 def test_adding_new_plugin_requires_no_code_change():
@@ -53,6 +56,7 @@ def test_adding_new_plugin_requires_no_code_change():
 
 
 def test_stdio_transport():
+    """Configure a stdio-based MCP server via env vars."""
     _clear_mcp_env()
     os.environ["MCP_SERVERS"] = "local"
     os.environ["MCP_LOCAL_TRANSPORT"] = "stdio"
@@ -67,6 +71,7 @@ def test_stdio_transport():
 
 
 def test_stdio_transport_with_env():
+    """Configure a stdio MCP server with API key passthrough."""
     _clear_mcp_env()
     os.environ["MCP_SERVERS"] = "maps"
     os.environ["MCP_MAPS_TRANSPORT"] = "stdio"
@@ -84,23 +89,3 @@ def test_stdio_transport_with_env():
     assert conn["command"] == "npx"
     assert conn["args"] == ["@modelcontextprotocol/server-google-maps"]
     assert conn["env"] == {"GOOGLE_MAPS_API_KEY": "test-key-123"}
-
-
-if __name__ == "__main__":
-    import inspect
-
-    test_functions = [
-        obj
-        for name, obj in list(globals().items())
-        if name.startswith("test_") and inspect.isfunction(obj)
-    ]
-    failures = 0
-    for fn in test_functions:
-        try:
-            fn()
-            print(f"PASS  {fn.__name__}")
-        except AssertionError:
-            failures += 1
-            print(f"FAIL  {fn.__name__}")
-    print(f"\n{len(test_functions) - failures}/{len(test_functions)} passed")
-    sys.exit(1 if failures else 0)
