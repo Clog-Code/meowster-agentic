@@ -12,7 +12,7 @@ def get_skills_path() -> Path:
     return AGENT_DIR / SKILLS_DIR
 
 
-def build_skills_virtual_path() -> str:
-    """Stable virtual route deepagents uses to mount the skills directory."""
-    normalized = SKILLS_DIR.replace("\\", "/").strip("/")
-    return f"/{normalized or 'skills'}/"
+def get_skills_virtual_path() -> str:
+    """Virtual path (relative to the backend root) for the skills directory."""
+    rel = get_skills_path().relative_to(AGENT_DIR).as_posix()
+    return f"/{rel}/"

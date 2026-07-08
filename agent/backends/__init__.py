@@ -1,20 +1,19 @@
 """
-Filesystem backend for the agent.
+Filesystem backend for reading the bundled skills/ directory.
 
-Module 2 doesn't need arbitrary code execution or a writable sandbox — its
-tools are all native Python functions or MCP calls. The only filesystem
-access the agent needs is *reading* its own `skills/` directory so
-`SKILL.md` instructions can be discovered and loaded.
-
-`virtual_mode=True` keeps everything in-memory: even if the model attempts
-a write, nothing touches disk.
+The agent reads SKILL.md files from the skills directory via the
+deepagents skills middleware.  No sandbox or writable filesystem is needed,
+so ``virtual_mode=True`` keeps everything in-memory (even if the model
+attempts a write, nothing touches disk).
 """
+
+from pathlib import Path
 
 from deepagents.backends import FilesystemBackend
 
-from ..filesystem import get_skills_path
+AGENT_DIR = Path(__file__).resolve().parent.parent
 
 
 def build_skills_backend() -> FilesystemBackend:
-    """Read-only-in-practice backend rooted at the bundled skills directory."""
-    return FilesystemBackend(root_dir=get_skills_path(), virtual_mode=True)
+    """Read-only-in-practice backend rooted at the agent package root."""
+    return FilesystemBackend(root_dir=AGENT_DIR, virtual_mode=True)

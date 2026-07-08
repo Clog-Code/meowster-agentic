@@ -32,9 +32,9 @@ from backend.services import persist_message
 from ..backends import build_skills_backend
 from ..config import LLM_DEFAULTS, MODE_INSTRUCT, MODE_THINKING_GENERAL
 from ..filesystem import (
-    build_skills_virtual_path,
     build_subagent_configs,
     get_initializer_prompt,
+    get_skills_virtual_path,
 )
 from ..llm import build_llm
 from . import events as ev
@@ -140,7 +140,7 @@ async def build_deep_agent(mode_config: dict | None = None, extra_tools=None):
     subagent_configs = build_subagent_configs(tool_groups)
 
     backend = build_skills_backend()
-    skill_source = build_skills_virtual_path()
+    skill_source = get_skills_virtual_path()
 
     llm = build_llm(mode_config=mode_config or VALID_MODES[DEFAULT_MODE])
 
