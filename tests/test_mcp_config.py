@@ -56,15 +56,34 @@ def test_stdio_transport():
     _clear_mcp_env()
     os.environ["MCP_SERVERS"] = "local"
     os.environ["MCP_LOCAL_TRANSPORT"] = "stdio"
-    os.environ["MCP_LOCAL_COMMAND"] = "npx"
-    os.environ["MCP_LOCAL_ARGS"] = "-y some-mcp-server"
+    os.environ["MCP_LOCAL_COMMAND"] = "npx some-mcp-server"
 
     specs = build_server_specs()
     assert len(specs) == 1
     conn = specs[0].to_langchain_mcp_connection()
     assert conn["transport"] == "stdio"
     assert conn["command"] == "npx"
-    assert conn["args"] == ["-y", "some-mcp-server"]
+    assert conn["args"] == ["some-mcp-server"]
+
+
+def test_stdio_transport_with_env():
+    _clear_mcp_env()
+    os.environ["MCP_SERVERS"] = "maps"
+    os.environ["MCP_MAPS_TRANSPORT"] = "stdio"
+    os.environ["MCP_MAPS_COMMAND"] = "npx @modelcontextprotocol/server-google-maps"
+    os.environ["MCP_MAPS_API_KEY"] = "test-key-123"
+
+    specs = build_server_specs()
+    assert len(specs) == 1
+    assert specs[0].name == "maps"
+    assert specs[0].command == "npx"
+    assert specs[0].args == ["@modelcontextprotocol/server-google-maps"]
+    assert specs[0].env == {"GOOGLE_MAPS_API_KEY": "test-key-123"}
+    conn = specs[0].to_langchain_mcp_connection()
+    assert conn["transport"] == "stdio"
+    assert conn["command"] == "npx"
+    assert conn["args"] == ["@modelcontextprotocol/server-google-maps"]
+    assert conn["env"] == {"GOOGLE_MAPS_API_KEY": "test-key-123"}
 
 
 if __name__ == "__main__":

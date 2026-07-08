@@ -14,6 +14,7 @@ dependencies = [
     "langchain-mcp-adapters>=0.1",
     "langchain-fireworks>=0.3",
     "ag-ui-protocol>=0.1.19",
+    "wikipedia-mcp>=2.0",
 ]
 
 [project.optional-dependencies]

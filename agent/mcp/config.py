@@ -16,12 +16,20 @@ constructs a connection entry for each one at runtime.
 from __future__ import annotations
 
 import os
+import shlex
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from ..config import get_mcp_server_names
 
 Transport = Literal["streamable_http", "sse", "stdio"]
+
+# Maps MCP server short-names to the env var their subprocess expects.
+# When MCP_<NAME>_API_KEY is set and transport is stdio, the key is
+# passed to the child process under this variable name.
+_STDIO_API_KEY_ENV: dict[str, str] = {
+    "maps": "GOOGLE_MAPS_API_KEY",
+}
 
 
 @dataclass
@@ -34,6 +42,7 @@ class MCPServerSpec:
     command: str | None = None
     args: list[str] = field(default_factory=list)
     api_key: str | None = None
+    env: dict[str, str] | None = None
 
     def to_langchain_mcp_connection(self) -> dict[str, Any]:
         """
@@ -41,11 +50,14 @@ class MCPServerSpec:
         `langchain_mcp_adapters.client.MultiServerMCPClient`.
         """
         if self.transport == "stdio":
-            return {
+            result: dict[str, Any] = {
                 "transport": "stdio",
                 "command": self.command,
                 "args": self.args,
             }
+            if self.env:
+                result["env"] = self.env
+            return result
 
         headers = {}
         if self.api_key:
@@ -79,19 +91,23 @@ def build_server_specs() -> list[MCPServerSpec]:
         api_key = _env(f"MCP_{upper}_API_KEY")
 
         if transport == "stdio":
-            command = _env(f"MCP_{upper}_COMMAND")
-            if not command:
+            raw_command = _env(f"MCP_{upper}_COMMAND")
+            if not raw_command:
                 print(
                     f"[mcp] skipping '{name}': stdio transport requires MCP_{upper}_COMMAND"
                 )
                 continue
-            raw_args = _env(f"MCP_{upper}_ARGS") or ""
+            command_parts = shlex.split(raw_command)
+            env = None
+            if api_key and name in _STDIO_API_KEY_ENV:
+                env = {_STDIO_API_KEY_ENV[name]: api_key}
             specs.append(
                 MCPServerSpec(
                     name=name,
                     transport="stdio",
-                    command=command,
-                    args=raw_args.split() if raw_args else [],
+                    command=command_parts[0],
+                    args=command_parts[1:],
+                    env=env,
                 )
             )
             continue
