@@ -6,7 +6,7 @@ frontmatter (name, description, tools) followed by its system prompt.
 
 The `tools:` field is a comma-separated list of tool-group keys. These keys
 are resolved against whatever `core.registry.build_tool_groups()` returns —
-which includes native groups ("communication", "commerce", "calendar",
+which includes native groups ("commerce", "calendar",
 "pet_profile") AND every MCP server name discovered from .env ("maps",
 "wikipedia", or any plugin added later). Adding a new MCP plugin therefore
 never requires touching this file — just reference its server name in an

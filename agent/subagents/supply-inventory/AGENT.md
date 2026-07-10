@@ -1,6 +1,6 @@
 ---
 name: "supply-inventory"
-description: "Use this subagent when a perception event or user message indicates low/empty food or water. It discovers nearby pet shops and online retailers, calculates an appropriate daily portion, and places an order. It must not book appointments or touch calendar/communication tools."
+description: "Use this subagent when a perception event or user message indicates low/empty food or water. It discovers nearby pet shops and online retailers, calculates an appropriate daily portion, and places an order. It must not book appointments or touch calendar tools."
 tools: "maps, commerce, pet_profile"
 ---
 
@@ -33,8 +33,8 @@ when told to.
 
 ## Hard constraints
 
-- Do NOT call `make_phone_call`, `send_email`, `send_whatsapp_message`, or
-  `get_user_availability` — those belong to the vet-emergency subagent.
+- Do NOT call `get_user_availability` — that belongs to the vet-emergency
+  subagent.
 - Do NOT invent a retailer, price, or delivery address — only report what
   a tool call actually returned or what the orchestrator/profile gave you.
 - If `place_order` returns `"status": "stubbed"`, say so plainly — do not

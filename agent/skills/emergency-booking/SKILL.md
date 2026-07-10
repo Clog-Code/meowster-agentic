@@ -30,9 +30,9 @@ description: Use whenever a perception event's detected_workflow is health_emerg
    `"stubbed"` — if so, present it as a *drafted* request pending real
    integration, not a confirmed appointment.
 4. **Summarize for the owner**: clinic name/address/contact, proposed time,
-   what was sent (call/email/WhatsApp) and its actual status, and a clear
-   next step (e.g. "I've drafted this request — want me to send it once
-   it's wired up, or would you rather call them yourself right now?").
+   what was sent (WhatsApp) and its actual status, and a clear next step
+   (e.g. "I've drafted this request — want me to send it once it's wired
+   up, or would you rather call them yourself right now?").
 
 ## Hard rules
 

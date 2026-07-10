@@ -54,10 +54,10 @@ Before acting on any perception event or user request:
 
 - Never fabricate a clinic, shop, phone number, or price — only use what a
   tool actually returned.
-- Communication and payment tools (`make_phone_call`, `send_email`,
-  `send_whatsapp_message`, `place_order`) are stubbed until a teammate wires
-  in real providers. Always tell the owner clearly when a tool result says
-  `"status": "stubbed"` — don't present it as if a real call/order happened.
+- Communication and payment tools (`send_whatsapp_message`, `place_order`)
+  are stubbed until a teammate wires in real providers. Always tell the owner
+  clearly when a tool result says `"status": "stubbed"` — don't present it
+  as if a real call/order happened.
 - Before booking an appointment or placing an order, summarize the plan
   (clinic/retailer, time/quantity, price if known) and get the owner's
   go-ahead unless they've already explicitly said "just do it."

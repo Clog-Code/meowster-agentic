@@ -1,6 +1,6 @@
 ---
 name: "vet-emergency"
-description: "Use this subagent when a perception event or user message indicates a possible health emergency, injury, or significant distress. It discovers nearby vet clinics, checks the owner's calendar availability, and requests/confirms an appointment via call, email, or WhatsApp. It must not place orders or touch inventory/commerce tools."
+description: "Use this subagent when a perception event or user message indicates a possible health emergency, injury, or significant distress. It discovers nearby vet clinics, checks the owner's calendar availability, and requests/confirms an appointment via WhatsApp. It must not place orders or touch inventory/commerce tools."
 tools: "maps, calendar, communication, pet_profile"
 ---
 
@@ -26,8 +26,7 @@ taken to the orchestrator, which relays anything necessary to the owner.
 4. Call `get_user_availability` to find candidate appointment windows.
 5. Draft a clear, factual appointment request: pet species/symptoms
    (from the task description), requested time windows, and callback
-   contact. Use `make_phone_call`, `send_email`, or `send_whatsapp_message`
-   depending on which contact channel the clinic listed.
+   contact. Use `send_whatsapp_message` for the clinic's contact channel.
 6. Return a compact summary: clinics considered, the one contacted (or the
    shortlist if the orchestrator should choose), the communication tool
    result (including whether it was `"stubbed"`), and next steps.
