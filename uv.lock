@@ -1642,6 +1642,7 @@ dependencies = [
     { name = "langgraph" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
+    { name = "requests" },
     { name = "uvicorn", extra = ["standard"] },
     { name = "wikipedia-mcp" },
 ]
@@ -1685,6 +1686,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "requests", specifier = ">=2.0" },
     { name = "ruff", marker = "extra == 'lint'", specifier = ">=0.15.12" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34" },
     { name = "wikipedia-mcp", specifier = ">=2.0" },

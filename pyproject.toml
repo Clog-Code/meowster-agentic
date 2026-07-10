@@ -6,6 +6,7 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.34",
     "python-dotenv>=1.0",
+    "requests>=2.0",
     "pyyaml>=6.0",
     "deepagents>=0.4",
     "langchain>=1.0",
@@ -32,7 +33,14 @@ test = [
     "pytest>=8.0",
 ]
 
+[tool.pyright]
+extraPaths = ["examples"]
+
+[tool.ty.environment]
+extra-paths = ["examples"]
+
 [tool.pylint.main]
+init-hook = "import sys; sys.path.insert(0, 'examples')"
 disable = [
     "broad-exception-caught",
     "duplicate-code",
