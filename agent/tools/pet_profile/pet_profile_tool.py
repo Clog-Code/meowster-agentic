@@ -20,7 +20,7 @@ from backend.services import upsert_pet_profile
 def get_pet_profile(pet_id: str) -> dict[str, Any]:
     """
     Look up a pet's stored profile: species, breed, weight, known medical
-    conditions, delivery address, and preferred clinic (if any).
+    conditions, delivery address, preferred clinic, and owner_id (if any).
 
     Args:
         pet_id: The pet's unique identifier, as sent by the perception
@@ -34,7 +34,7 @@ def get_pet_profile(pet_id: str) -> dict[str, Any]:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT pet_id, name, species, breed, weight_kg, life_stage,
+            SELECT pet_id, owner_id, name, species, breed, weight_kg, life_stage,
                    known_conditions, delivery_address, preferred_clinic,
                    preferred_food_brand
             FROM pet_profiles
@@ -59,6 +59,7 @@ def save_pet_profile(
     species: str,
     name: str | None = None,
     pet_id: str | None = None,
+    owner_id: str | None = None,
     breed: str | None = None,
     weight_kg: float | None = None,
     life_stage: str | None = None,
@@ -80,6 +81,7 @@ def save_pet_profile(
         species: e.g. "Cat", "Dog" (required).
         name: The pet's name.
         pet_id: Unique identifier (omit for new pets, provide to update).
+        owner_id: The owner's unique identifier to link this pet to an owner.
         breed: The pet's breed.
         weight_kg: The pet's weight in kilograms.
         life_stage: e.g. "Kitten", "Adult", "Senior".
@@ -95,6 +97,7 @@ def save_pet_profile(
     upsert_pet_profile(
         {
             "pet_id": resolved_id,
+            "owner_id": owner_id,
             "name": name,
             "species": species,
             "breed": breed,

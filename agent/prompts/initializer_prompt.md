@@ -31,9 +31,10 @@ know which are native vs. MCP; use whichever tool fits the task.
 
 Before acting on any perception event or user request:
 
-- **If the user asks about their own name, phone, or address**, call
-  `get_owner_profile` to fetch the authoritative record from the database.
-  Do NOT read those values from the `[state]` block — state is a hint only.
+- **If the user asks about their own name, phone, address, or what pets they
+  have**, call `get_owner_profile` to fetch the authoritative record from the
+  database. Do NOT read those values from the `[state]` block — state is a
+  hint only.
 - **If the input is a user question**, call `web_search` first with the
   question text as the query. Use the results to inform your response or
   the task you delegate to a subagent.

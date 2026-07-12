@@ -71,10 +71,21 @@ def list_threads(limit: int = 50) -> list[dict[str, Any]]:
 
 
 def list_pet_profiles() -> list[dict[str, Any]]:
-    """Return all stored pet profiles (pet_id, name, species)."""
+    """Return all stored pet profiles (pet_id, name, species, owner_id)."""
     with get_db() as conn:
         cursor = conn.execute(
-            "SELECT pet_id, name, species FROM pet_profiles ORDER BY created_at"
+            "SELECT pet_id, owner_id, name, species FROM pet_profiles ORDER BY created_at"
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def list_pets_by_owner(owner_id: str) -> list[dict[str, Any]]:
+    """Return all pets belonging to a given owner."""
+    with get_db() as conn:
+        cursor = conn.execute(
+            "SELECT pet_id, owner_id, name, species, breed, weight_kg, life_stage "
+            "FROM pet_profiles WHERE owner_id = ? ORDER BY created_at",
+            (owner_id,),
         )
         return [dict(row) for row in cursor.fetchall()]
 
@@ -84,7 +95,7 @@ def get_pet_profile(pet_id: str) -> dict[str, Any] | None:
     with get_db() as conn:
         cursor = conn.execute(
             """
-            SELECT pet_id, name, species, breed, weight_kg, life_stage,
+            SELECT pet_id, owner_id, name, species, breed, weight_kg, life_stage,
                    known_conditions, delivery_address, preferred_clinic,
                    preferred_food_brand
             FROM pet_profiles
@@ -102,11 +113,12 @@ def upsert_pet_profile(profile: dict[str, Any]) -> None:
         conn.execute(
             """
             INSERT INTO pet_profiles (
-                pet_id, name, species, breed, weight_kg, life_stage,
+                pet_id, owner_id, name, species, breed, weight_kg, life_stage,
                 known_conditions, delivery_address, preferred_clinic,
                 preferred_food_brand, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             ON CONFLICT(pet_id) DO UPDATE SET
+                owner_id=excluded.owner_id,
                 name=excluded.name,
                 species=excluded.species,
                 breed=excluded.breed,
@@ -120,6 +132,7 @@ def upsert_pet_profile(profile: dict[str, Any]) -> None:
             """,
             (
                 profile["pet_id"],
+                profile.get("owner_id"),
                 profile.get("name"),
                 profile["species"],
                 profile.get("breed"),

@@ -47,6 +47,7 @@ from .services import (  # noqa: E402  # pylint: disable=wrong-import-position
     get_streak_summary,
     get_thread_messages,
     list_pet_profiles,
+    list_pets_by_owner,
     list_threads,
     persist_message,
     record_perception_event,
@@ -102,8 +103,14 @@ async def upload_file(file: UploadFile = File(...)):
 
 @app.get("/pet-profiles")
 def list_pets():
-    """List all registered pets (pet_id, name, species)."""
+    """List all registered pets (pet_id, name, species, owner_id)."""
     return {"pets": list_pet_profiles()}
+
+
+@app.get("/owner/{owner_id}/pets")
+def list_owner_pets(owner_id: str):
+    """List all pets belonging to a specific owner."""
+    return {"owner_id": owner_id, "pets": list_pets_by_owner(owner_id)}
 
 
 @app.get("/pet-profile/{pet_id}")
@@ -121,6 +128,7 @@ class PetProfilePayload(BaseModel):
     """Wire format for creating or updating a pet profile."""
 
     pet_id: str
+    owner_id: str | None = None
     name: str | None = None
     species: str
     breed: str | None = None

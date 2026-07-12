@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS owner_profiles (
 
 CREATE TABLE IF NOT EXISTS pet_profiles (
     pet_id                TEXT PRIMARY KEY,
+    owner_id              TEXT REFERENCES owner_profiles(owner_id),
     name                  TEXT,
     species               TEXT NOT NULL,
     breed                 TEXT,
@@ -96,9 +97,17 @@ def init_db() -> None:
     """Create tables if they don't already exist. Call once at startup."""
     with _connect() as conn:
         conn.executescript(_SCHEMA)
+        _migrate(conn)
         _seed_owner_profiles(conn)
         _seed_pet_profiles(conn)
         _seed_pet_moments(conn)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Apply additive migrations to an existing database."""
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(pet_profiles)")}
+    if "owner_id" not in cols:
+        conn.execute("ALTER TABLE pet_profiles ADD COLUMN owner_id TEXT REFERENCES owner_profiles(owner_id)")
 
 
 _SEED_OWNERS = [
@@ -123,6 +132,7 @@ def _seed_owner_profiles(conn) -> None:
 _SEED_PROFILES = [
     {
         "pet_id": str(uuid.uuid5(uuid.NAMESPACE_DNS, "mochi")),
+        "owner_id": "owner-01",
         "name": "Mochi",
         "species": "Cat",
         "breed": "Domestic Shorthair",
@@ -135,6 +145,7 @@ _SEED_PROFILES = [
     },
     {
         "pet_id": str(uuid.uuid5(uuid.NAMESPACE_DNS, "luna")),
+        "owner_id": "owner-01",
         "name": "Luna",
         "species": "Cat",
         "breed": "Persian",
@@ -154,13 +165,14 @@ def _seed_pet_profiles(conn) -> None:
         conn.execute(
             """
             INSERT OR IGNORE INTO pet_profiles (
-                pet_id, name, species, breed, weight_kg, life_stage,
+                pet_id, owner_id, name, species, breed, weight_kg, life_stage,
                 known_conditions, delivery_address, preferred_clinic,
                 preferred_food_brand
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 profile["pet_id"],
+                profile["owner_id"],
                 profile["name"],
                 profile["species"],
                 profile["breed"],
