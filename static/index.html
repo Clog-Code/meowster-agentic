@@ -40,7 +40,15 @@
     <section class="panel">
       <h2>Chat</h2>
       <div id="messages" class="messages"></div>
+      <div id="attachment-preview" class="attachment-preview hidden">
+        <img id="preview-img" src="" alt="attachment" />
+        <button id="remove-attachment" title="Remove">✕</button>
+      </div>
       <div class="row">
+        <label class="attach-btn" title="Attach image">
+          📎
+          <input id="file-input" type="file" accept="image/*" hidden />
+        </label>
         <input id="chat-input" type="text" placeholder="Type a message to the orchestrator…" />
         <button id="send-chat">Send</button>
       </div>

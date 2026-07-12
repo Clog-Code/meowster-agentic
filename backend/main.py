@@ -18,9 +18,9 @@ import uuid
 
 from dotenv import load_dotenv
 from ag_ui.core import RunAgentInput
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -32,6 +32,9 @@ from agent.core import parse_perception_payload, run_agent  # noqa: E402  # pyli
 
 from .api.auth import router as auth_router  # noqa: E402  # pylint: disable=wrong-import-position
 from .config import BASE_DIR, CORS_ALLOW_ORIGINS, PERCEPTION_INGEST_TOKEN  # noqa: E402  # pylint: disable=wrong-import-position
+
+UPLOADS_DIR = BASE_DIR / "uploads"
+UPLOADS_DIR.mkdir(exist_ok=True)
 from .db import init_db  # noqa: E402  # pylint: disable=wrong-import-position
 from .services import ensure_thread, record_perception_event  # noqa: E402  # pylint: disable=wrong-import-position
 
@@ -51,6 +54,22 @@ app.include_router(auth_router)
 @app.on_event("startup")
 def _startup() -> None:
     init_db()
+    UPLOADS_DIR.mkdir(exist_ok=True)
+
+
+# ---------------------------------------------------------------------------
+# File upload endpoint
+# ---------------------------------------------------------------------------
+
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Save an uploaded image and return its public URL."""
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "bin"
+    filename = f"{uuid.uuid4()}.{ext}"
+    dest = UPLOADS_DIR / filename
+    dest.write_bytes(await file.read())
+    return JSONResponse({"url": f"/uploads/{filename}", "filename": file.filename})
 
 
 # ---------------------------------------------------------------------------
@@ -154,6 +173,9 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+app.mount(
+    "/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads"
+)
 app.mount(
     "/", StaticFiles(directory=str(BASE_DIR / "static"), html=True), name="static"
 )

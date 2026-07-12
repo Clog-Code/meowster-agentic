@@ -10,10 +10,20 @@ const todosEl = document.getElementById("todos");
 const threadId = crypto.randomUUID();
 const history = [];
 
-function addMessage(role, text) {
+function addMessage(role, text, imageUrl) {
   const div = document.createElement("div");
   div.className = `msg ${role}`;
-  div.textContent = text;
+  if (imageUrl) {
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.className = "msg-image";
+    div.appendChild(img);
+  }
+  if (text) {
+    const span = document.createElement("span");
+    span.textContent = text;
+    div.appendChild(span);
+  }
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
   return div;
@@ -69,7 +79,10 @@ async function consumeAgentStream(response) {
           break;
         case "TEXT_MESSAGE_CONTENT":
           assistantText += evt.delta ?? "";
-          if (currentAssistantDiv) currentAssistantDiv.textContent = assistantText;
+          if (currentAssistantDiv) {
+            const span = currentAssistantDiv.querySelector("span") || currentAssistantDiv;
+            span.textContent = assistantText;
+          }
           break;
         case "TEXT_MESSAGE_END":
           if (assistantText) {
@@ -118,19 +131,72 @@ async function runAgent(userMessageContent) {
   await consumeAgentStream(response);
 }
 
+// ── File attachment ──────────────────────────────────────────────────────────
+
+const fileInput = document.getElementById("file-input");
+const previewContainer = document.getElementById("attachment-preview");
+const previewImg = document.getElementById("preview-img");
+const removeBtn = document.getElementById("remove-attachment");
+
+let pendingImageUrl = null; // server URL after upload
+
+fileInput.addEventListener("change", async () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  // Show local preview immediately
+  previewImg.src = URL.createObjectURL(file);
+  previewContainer.classList.remove("hidden");
+  pendingImageUrl = null;
+
+  const form = new FormData();
+  form.append("file", file);
+  try {
+    const res = await fetch("/upload", { method: "POST", body: form });
+    if (res.ok) {
+      const data = await res.json();
+      pendingImageUrl = data.url;
+    } else {
+      addMessage("error", `Upload failed: ${res.status}`);
+      clearAttachment();
+    }
+  } catch (err) {
+    addMessage("error", `Upload error: ${err.message}`);
+    clearAttachment();
+  }
+  fileInput.value = "";
+});
+
+function clearAttachment() {
+  pendingImageUrl = null;
+  previewImg.src = "";
+  previewContainer.classList.add("hidden");
+}
+
+removeBtn.addEventListener("click", clearAttachment);
+
+// ── Send chat ─────────────────────────────────────────────────────────────────
+
 document.getElementById("send-chat").addEventListener("click", () => {
   const input = document.getElementById("chat-input");
   const text = input.value.trim();
-  if (!text) return;
-  addMessage("user", text);
+  if (!text && !pendingImageUrl) return;
+
+  const imageUrl = pendingImageUrl;
+  // Build the message content: text + image URL hint for the agent
+  const agentContent = imageUrl
+    ? `${text}\n[image attached: ${window.location.origin}${imageUrl}]`
+    : text;
+
+  addMessage("user", text || "(image)", imageUrl);
   input.value = "";
-  runAgent(text);
+  clearAttachment();
+  runAgent(agentContent);
 });
 
 document.getElementById("chat-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter") document.getElementById("send-chat").click();
 });
-
 const SCENARIOS = {
   health: {
     pet_id: "buddy-01",
