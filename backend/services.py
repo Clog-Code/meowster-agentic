@@ -257,7 +257,7 @@ def _build_month_days(
         moments = day_map[d]
         emotions = [m["emotion"] for m in moments if m["emotion"]]
         dominant = max(set(emotions), key=emotions.count) if emotions else None
-        
+
         # Pick the latest image_path from the day's moments
         image_path = None
         for m in reversed(moments):

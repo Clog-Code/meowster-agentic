@@ -1,3 +1,5 @@
+"""Unit tests for the owner_profile_tool module."""
+
 import sqlite3
 import sys
 from contextlib import contextmanager
@@ -10,6 +12,7 @@ from agent.tools.owner_profile import owner_profile_tool
 
 
 def test_get_owner_profile_returns_linked_pets(monkeypatch):
+    """Test that get_owner_profile returns the linked pets for a given owner profile."""
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
     conn.executescript(
