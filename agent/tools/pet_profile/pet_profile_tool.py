@@ -7,6 +7,7 @@ so subagents don't have to ask the user to repeat static information on
 every run.
 """
 
+import uuid
 from typing import Any
 
 from langchain_core.tools import tool
@@ -55,9 +56,9 @@ def get_pet_profile(pet_id: str) -> dict[str, Any]:
 
 @tool
 def save_pet_profile(
-    pet_id: str,
     species: str,
     name: str | None = None,
+    pet_id: str | None = None,
     breed: str | None = None,
     weight_kg: float | None = None,
     life_stage: str | None = None,
@@ -70,15 +71,15 @@ def save_pet_profile(
     Create or update a pet's stored profile.
 
     Use this when the user tells you about a new pet or provides updated
-    information about an existing one. A minimal profile only needs pet_id
-    and species — other fields can be filled in later as the user provides
-    more details.
+    information about an existing one.
+
+    Omit pet_id for a new pet — the tool will auto-generate one.
+    Provide an existing pet_id to update that pet's profile.
 
     Args:
-        pet_id: A unique identifier for the pet (you can generate one
-            with uuid.uuid4() if the user hasn't provided one).
-        species: e.g. "Cat", "Dog".
+        species: e.g. "Cat", "Dog" (required).
         name: The pet's name.
+        pet_id: Unique identifier (omit for new pets, provide to update).
         breed: The pet's breed.
         weight_kg: The pet's weight in kilograms.
         life_stage: e.g. "Kitten", "Adult", "Senior".
@@ -90,9 +91,10 @@ def save_pet_profile(
     Returns:
         A dict with success status and the pet_id.
     """
+    resolved_id = pet_id or str(uuid.uuid4())
     upsert_pet_profile(
         {
-            "pet_id": pet_id,
+            "pet_id": resolved_id,
             "name": name,
             "species": species,
             "breed": breed,
@@ -104,7 +106,7 @@ def save_pet_profile(
             "preferred_food_brand": preferred_food_brand,
         }
     )
-    return {"success": True, "pet_id": pet_id}
+    return {"success": True, "pet_id": resolved_id}
 
 
 PET_PROFILE_TOOLS = [get_pet_profile, save_pet_profile]
