@@ -9,20 +9,6 @@ mcp-wiki
 
 ---
 
-## How to Start the Server
-
-```bash
-cd cat-health-mcp/wikipedia-mcp
-source venv/bin/activate
-wikipedia-mcp
-```
-
-Or with explicit transport flag:
-
-```bash
-wikipedia-mcp --transport stdio
-```
-
 ---
 
 ## Important Note on Duplicate Tools
