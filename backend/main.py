@@ -18,6 +18,7 @@ Sub-routers:
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 from typing import Any
 
 from dotenv import load_dotenv
@@ -43,11 +44,13 @@ from .db import init_db  # noqa: E402  # pylint: disable=wrong-import-position
 from .services import (  # noqa: E402  # pylint: disable=wrong-import-position
     ensure_thread,
     get_pet_profile,
+    get_streak_summary,
     get_thread_messages,
     list_pet_profiles,
     list_threads,
     persist_message,
     record_perception_event,
+    record_pet_moment,
     upsert_pet_profile,
 )
 
@@ -202,6 +205,18 @@ def thread_history(thread_id: str):
 
 
 # ---------------------------------------------------------------------------
+# Pet moments / streak endpoint
+# ---------------------------------------------------------------------------
+
+
+@app.get("/pet-moments/streaks")
+def pet_moment_streaks(pet_id: str):
+    """Return the streak summary for a pet (current streak, longest streak,
+    and per-day capture details for the current month)."""
+    return get_streak_summary(pet_id)
+
+
+# ---------------------------------------------------------------------------
 # Perception webhook (Module 1 -> Module 2)
 # ---------------------------------------------------------------------------
 
@@ -246,6 +261,19 @@ async def perception_webhook(
     ensure_thread(thread_id)
     record_perception_event(
         event.pet_id, payload.model_dump(), workflow.value, thread_id
+    )
+
+    moment_date = (
+        payload.timestamp[:10]
+        if payload.timestamp
+        else datetime.now().strftime("%Y-%m-%d")
+    )
+    record_pet_moment(
+        pet_id=payload.pet_id,
+        captured_at=moment_date,
+        emotion=payload.emotion,
+        species=payload.species,
+        image_path=payload.image_path,
     )
 
     body = RunAgentInput.model_validate(

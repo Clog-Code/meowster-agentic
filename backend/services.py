@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import UTC, datetime
+from collections import defaultdict
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from .db import get_db
@@ -195,3 +196,127 @@ def record_perception_event(
             (event_id, pet_id, json.dumps(payload), workflow, thread_id),
         )
     return event_id
+
+
+def record_pet_moment(
+    pet_id: str,
+    captured_at: str,
+    emotion: str | None,
+    species: str,
+    image_path: str | None = None,
+) -> int:
+    """Insert a row into pet_moments (returns the auto-increment id)."""
+    with get_db() as conn:
+        cursor = conn.execute(
+            """
+            INSERT INTO pet_moments (pet_id, captured_at, emotion, species, image_path)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (pet_id, captured_at, emotion, species, image_path),
+        )
+        rowid = cursor.lastrowid
+        assert rowid is not None
+        return rowid
+
+
+def _compute_longest_streak(dates: list[date]) -> int:
+    longest = 0
+    streak = 0
+    prev: date | None = None
+    for d in dates:
+        if prev is None or (d - prev).days == 1:
+            streak += 1
+        else:
+            streak = 1
+        longest = max(longest, streak)
+        prev = d
+    return longest
+
+
+def _build_month_days(
+    day_map: dict[date, list[dict[str, Any]]],
+    month_start: date,
+) -> list[dict[str, Any]]:
+    days_out: list[dict[str, Any]] = []
+    for d in sorted(day_map):
+        if d.year != month_start.year or d.month != month_start.month:
+            continue
+        moments = day_map[d]
+        emotions = [m["emotion"] for m in moments if m["emotion"]]
+        dominant = max(set(emotions), key=emotions.count) if emotions else None
+        days_out.append(
+            {
+                "date": d.isoformat(),
+                "capture_count": len(moments),
+                "dominant_emotion": dominant,
+                "species": moments[0]["species"],
+            }
+        )
+    return days_out
+
+
+def get_streak_summary(pet_id: str) -> dict[str, Any]:
+    """Compute streak data for a pet and return the frontend contract.
+
+    Returns:
+        {
+            "current_streak": int,
+            "longest_streak": int,
+            "month_start": str (ISO date),
+            "days": [
+                {
+                    "date": str,
+                    "capture_count": int,
+                    "dominant_emotion": str | None,
+                    "species": str,
+                },
+            ],
+        }
+    """
+    today = date.today()
+    month_start = date(today.year, today.month, 1)
+
+    with get_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT captured_at, emotion, species
+            FROM pet_moments
+            WHERE pet_id = ?
+            ORDER BY captured_at ASC
+            """,
+            (pet_id,),
+        ).fetchall()
+
+    if not rows:
+        return {
+            "current_streak": 0,
+            "longest_streak": 0,
+            "month_start": month_start.isoformat(),
+            "days": [],
+        }
+
+    # Group by date
+    day_map: dict[date, list[dict[str, Any]]] = defaultdict(list)
+    all_dates: set[date] = set()
+    for row in rows:
+        d = date.fromisoformat(row["captured_at"])
+        day_map[d].append({"emotion": row["emotion"], "species": row["species"]})
+        all_dates.add(d)
+
+    unique_dates = sorted(all_dates)
+
+    # Current streak (consecutive days ending at or before today)
+    current_streak = 0
+    d = today
+    while d in day_map:
+        current_streak += 1
+        d -= timedelta(days=1)
+
+    longest_streak = _compute_longest_streak(unique_dates)
+
+    return {
+        "current_streak": current_streak,
+        "longest_streak": longest_streak,
+        "month_start": month_start.isoformat(),
+        "days": _build_month_days(day_map, month_start),
+    }

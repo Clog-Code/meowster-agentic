@@ -1,5 +1,6 @@
 """SQLite connection + schema management for the backend."""
 
+import datetime as _dt
 import uuid
 import sqlite3
 from contextlib import contextmanager
@@ -45,6 +46,19 @@ CREATE TABLE IF NOT EXISTS perception_events (
     created_at  TEXT DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS pet_moments (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    pet_id      TEXT NOT NULL,
+    captured_at TEXT NOT NULL,
+    emotion     TEXT,
+    species     TEXT NOT NULL,
+    image_path  TEXT,
+    created_at  TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_pet_moments_pet_date
+    ON pet_moments(pet_id, captured_at);
+
 CREATE TABLE IF NOT EXISTS oauth_tokens (
     id             INTEGER PRIMARY KEY AUTOINCREMENT,
     provider       TEXT NOT NULL,
@@ -74,6 +88,7 @@ def init_db() -> None:
     with _connect() as conn:
         conn.executescript(_SCHEMA)
         _seed_pet_profiles(conn)
+        _seed_pet_moments(conn)
 
 
 _SEED_PROFILES = [
@@ -128,6 +143,80 @@ def _seed_pet_profiles(conn) -> None:
                 profile["preferred_food_brand"],
             ),
         )
+
+
+def _seed_pet_moments(conn) -> None:
+    """Insert sample pet-moment data for streak history (once per pet_id)."""
+    seeded = {
+        row[0]
+        for row in conn.execute("SELECT DISTINCT pet_id FROM pet_moments").fetchall()
+    }
+
+    if {
+        "pet-01",
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, "mochi")),
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, "luna")),
+    }.issubset(seeded):
+        return
+
+    today = _dt.date.today()
+    emotions = ["curious", "happy", "playful", "calm", "normal", "surprised", "rested"]
+
+    def _insert(pet_id: str, days_ago: int, emotion: str, species: str) -> None:
+        d = (today - _dt.timedelta(days=days_ago)).isoformat()
+        conn.execute(
+            "INSERT OR IGNORE INTO pet_moments (pet_id, captured_at, emotion, species) "
+            "VALUES (?, ?, ?, ?)",
+            (pet_id, d, emotion, species),
+        )
+
+    # Default frontend pet_id ('pet-01') — rich streak data
+    for offset in range(10):  # 10-day ongoing streak
+        _insert("pet-01", offset, emotions[offset % len(emotions)], "Cat")
+    _insert("pet-01", 12, "happy", "Cat")
+    _insert("pet-01", 13, "playful", "Cat")
+    _insert("pet-01", 16, "calm", "Cat")
+    _insert("pet-01", 17, "curious", "Cat")
+    _insert("pet-01", 18, "normal", "Cat")
+    _insert("pet-01", 21, "surprised", "Cat")
+    _insert("pet-01", 22, "rested", "Cat")
+    _insert("pet-01", 25, "curious", "Cat")
+    _insert("pet-01", 26, "happy", "Cat")
+    _insert("pet-01", 29, "playful", "Cat")
+
+    # Mochi — 12-day active streak then 2-day gap then ongoing
+    mochi_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, "mochi"))
+    if mochi_id not in seeded:
+        for offset in range(14):  # days 0-13 (today back 13 days)
+            if 4 <= offset <= 5:
+                continue  # gap on days -4, -5
+            _insert(mochi_id, offset, emotions[offset % len(emotions)], "Cat")
+        _insert(mochi_id, 17, "curious", "Cat")
+        _insert(mochi_id, 18, "happy", "Cat")
+        _insert(mochi_id, 21, "playful", "Cat")
+        _insert(mochi_id, 22, "calm", "Cat")
+        _insert(mochi_id, 23, "normal", "Cat")
+        _insert(mochi_id, 27, "surprised", "Cat")
+        _insert(mochi_id, 28, "rested", "Cat")
+        _insert(mochi_id, 29, "curious", "Cat")
+
+    # Luna — 5-day ongoing streak
+    luna_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, "luna"))
+    if luna_id not in seeded:
+        for offset in range(5):  # past 5 days
+            _insert(luna_id, offset, emotions[(offset + 2) % len(emotions)], "Cat")
+        _insert(luna_id, 10, "happy", "Cat")
+        _insert(luna_id, 11, "playful", "Cat")
+        _insert(luna_id, 12, "calm", "Cat")
+        _insert(luna_id, 15, "curious", "Cat")
+        _insert(luna_id, 16, "normal", "Cat")
+        _insert(luna_id, 17, "happy", "Cat")
+        _insert(luna_id, 20, "playful", "Cat")
+        _insert(luna_id, 21, "surprised", "Cat")
+        _insert(luna_id, 24, "rested", "Cat")
+        _insert(luna_id, 25, "curious", "Cat")
+        _insert(luna_id, 28, "happy", "Cat")
+        _insert(luna_id, 29, "calm", "Cat")
 
 
 @contextmanager
