@@ -10,10 +10,12 @@ from .calendar import CALENDAR_TOOLS
 from .commerce import COMMERCE_TOOLS
 from .communication import COMMUNICATION_TOOLS
 from .pet_profile import PET_PROFILE_TOOLS
+from .search import SEARCH_TOOLS
 
 __all__ = [  # pylint: disable=duplicate-code
     "CALENDAR_TOOLS",
     "COMMERCE_TOOLS",
     "COMMUNICATION_TOOLS",
     "PET_PROFILE_TOOLS",
+    "SEARCH_TOOLS",
 ]

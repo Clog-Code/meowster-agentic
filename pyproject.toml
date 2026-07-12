@@ -36,13 +36,13 @@ test = [
 ]
 
 [tool.pyright]
-extraPaths = ["examples"]
+extraPaths = ["examples", "examples/search_service"]
 
 [tool.ty.environment]
-extra-paths = ["examples"]
+extra-paths = ["examples", "examples/search_service"]
 
 [tool.pylint.main]
-init-hook = "import sys; sys.path.insert(0, 'examples')"
+init-hook = "import sys; sys.path.insert(0, 'examples'); sys.path.insert(0, 'examples/search_service')"
 disable = [
     "broad-exception-caught",
     "duplicate-code",
@@ -50,6 +50,7 @@ disable = [
     "too-many-branches",
     "too-many-instance-attributes",
     "too-many-positional-arguments",
+    "too-many-return-statements",
     "too-many-statements"
 ]
 

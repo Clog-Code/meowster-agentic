@@ -1,29 +1,19 @@
-"""Unit tests for the search-service helpers and routes (no network needed)."""
+"""Unit tests for the search tools (agent/tools/search/*) — no network needed."""
 
+import base64
 import os
 import sys
 from pathlib import Path
 from unittest import mock
 
-SEARCH_SERVICE = (
-    Path(__file__).resolve().parent.parent.parent / "examples" / "search_service"
-)
-sys.path.insert(0, str(SEARCH_SERVICE))
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 os.environ.setdefault("SERPAPI_KEY", "test-serpapi-key")
 
-# The search-service depends on third-party clients (ddgs, serpapi) that are
-# not required by the agentic test environment. Inject lightweight fakes so the
-# modules import cleanly; individual tests patch the clients as needed.
-sys.modules.setdefault("ddgs", mock.MagicMock())
-sys.modules.setdefault("serpapi", mock.MagicMock())
-
-# pylint: disable-next=wrong-import-position
-from app.duckduckgo import web_search  # noqa: E402
-
-# pylint: disable-next=wrong-import-position
-from app.serpapi import visual_search  # noqa: E402
-
+# pylint: disable=wrong-import-position
+import agent.tools.search.duckduckgo_tool as ddg
+import agent.tools.search.serpapi_tool as serp
 
 # ---------------------------------------------------------------------------
 # web_search (DuckDuckGo)
@@ -50,15 +40,17 @@ def test_web_search_maps_fields():
         },
         {"title": "Another", "href": "https://example.com/2", "body": "More info."},
     ]
-    with mock.patch("app.duckduckgo.DDGS", return_value=_fake_ddgs_context(raw)):
-        results = web_search("persian cat eyes", 5)
-    assert len(results) == 2
-    assert results[0] == {
+    patch_path = "agent.tools.search.duckduckgo_tool.DDGS"
+    with mock.patch(patch_path, return_value=_fake_ddgs_context(raw)):
+        result = ddg.web_search.invoke({"query": "persian cat eyes", "max_results": 5})
+    assert result["success"] is True
+    assert result["count"] == 2
+    assert result["results"][0] == {
         "title": "Cat Eye Care",
         "url": "https://example.com/eyes",
         "snippet": "Keep them clean.",
     }
-    assert results[1]["url"] == "https://example.com/2"
+    assert result["results"][1]["url"] == "https://example.com/2"
 
 
 def test_web_search_respects_max_results():
@@ -71,10 +63,23 @@ def test_web_search_respects_max_results():
     cm = mock.MagicMock()
     cm.__enter__.return_value = fake_ddgs
     cm.__exit__.return_value = False
-    with mock.patch("app.duckduckgo.DDGS", return_value=cm):
-        web_search("cats", 3)
+    patch_path = "agent.tools.search.duckduckgo_tool.DDGS"
+    with mock.patch(patch_path, return_value=cm):
+        ddg.web_search.invoke({"query": "cats", "max_results": 3})
     _, kwargs = fake_ddgs.text.call_args
     assert kwargs["max_results"] == 3
+
+
+def test_web_search_error_returns_failure():
+    """web_search returns a failure dict when DDGS raises."""
+    cm = mock.MagicMock()
+    cm.__enter__.side_effect = RuntimeError("DDGS unavailable")
+    cm.__exit__.return_value = False
+    patch_path = "agent.tools.search.duckduckgo_tool.DDGS"
+    with mock.patch(patch_path, return_value=cm):
+        result = ddg.web_search.invoke({"query": "cats"})
+    assert result["success"] is False
+    assert "DDGS unavailable" in result["error"]
 
 
 # ---------------------------------------------------------------------------
@@ -83,7 +88,7 @@ def test_web_search_respects_max_results():
 
 
 def test_visual_search_maps_matches():
-    """visual_search maps visual_matches into the expected shape."""
+    """visual_search (via URL) maps visual_matches into the expected shape."""
     raw = {
         "visual_matches": [
             {
@@ -98,10 +103,14 @@ def test_visual_search_maps_matches():
     }
     fake_search = mock.Mock()
     fake_search.get_dict.return_value = raw
-    with mock.patch("app.serpapi.GoogleSearch", return_value=fake_search):
-        results = visual_search("https://example.com/cat.jpg", 10)
-    assert len(results) == 1
-    match = results[0]
+    patch_path = "agent.tools.search.serpapi_tool.GoogleSearch"
+    with mock.patch(patch_path, return_value=fake_search):
+        result = serp.visual_search.invoke(
+            {"image_url": "https://example.com/cat.jpg", "max_results": 10}
+        )
+    assert result["success"] is True
+    assert result["count"] == 1
+    match = result["results"][0]
     assert match["position"] == 1
     assert match["title"] == "Orange Tabby"
     assert match["link"] == "https://example.com/tabby"
@@ -127,106 +136,107 @@ def test_visual_search_limits_results():
     }
     fake_search = mock.Mock()
     fake_search.get_dict.return_value = raw
-    with mock.patch("app.serpapi.GoogleSearch", return_value=fake_search):
-        results = visual_search("https://example.com/cat.jpg", 2)
-    assert len(results) == 2
+    patch_path = "agent.tools.search.serpapi_tool.GoogleSearch"
+    with mock.patch(patch_path, return_value=fake_search):
+        result = serp.visual_search.invoke(
+            {"image_url": "https://example.com/cat.jpg", "max_results": 2}
+        )
+    assert result["success"] is True
+    assert result["count"] == 2
 
 
 def test_visual_search_raises_on_api_error():
-    """visual_search raises when SerpAPI returns an error payload."""
+    """visual_search reports error when SerpAPI returns an error payload."""
     fake_search = mock.Mock()
     fake_search.get_dict.return_value = {"error": "Invalid API key"}
-    with mock.patch("app.serpapi.GoogleSearch", return_value=fake_search):
-        try:
-            visual_search("https://example.com/cat.jpg")
-            assert False, "expected Exception"
-        except Exception as exc:  # noqa: BLE001
-            assert "Invalid API key" in str(exc)
+    patch_path = "agent.tools.search.serpapi_tool.GoogleSearch"
+    with mock.patch(patch_path, return_value=fake_search):
+        result = serp.visual_search.invoke({"image_url": "https://example.com/cat.jpg"})
+    assert result["success"] is False
+    assert "Invalid API key" in result["error"]
 
 
 def test_visual_search_empty_when_no_matches():
-    """visual_search returns an empty list when there are no matches."""
+    """visual_search returns empty results when there are no matches."""
     fake_search = mock.Mock()
     fake_search.get_dict.return_value = {}
-    with mock.patch("app.serpapi.GoogleSearch", return_value=fake_search):
-        results = visual_search("https://example.com/cat.jpg")
-    assert results == []
+    patch_path = "agent.tools.search.serpapi_tool.GoogleSearch"
+    with mock.patch(patch_path, return_value=fake_search):
+        result = serp.visual_search.invoke({"image_url": "https://example.com/cat.jpg"})
+    assert result["success"] is True
+    assert result["results"] == []
 
 
-# ---------------------------------------------------------------------------
-# FastAPI routes (only when fastapi is available)
-# ---------------------------------------------------------------------------
+def test_visual_search_requires_url_or_path():
+    """visual_search fails if neither image_url nor image_path is given."""
+    fake_search = mock.Mock()
+    fake_search.get_dict.return_value = {}
+    patch_path = "agent.tools.search.serpapi_tool.GoogleSearch"
+    with mock.patch(patch_path, return_value=fake_search):
+        result = serp.visual_search.invoke({})
+    assert result["success"] is False
+    assert "image_path" in result["error"] or "image_url" in result["error"]
 
 
-pytest = __import__("pytest")
-fastapi = pytest.importorskip("fastapi")
+def test_visual_search_local_file(tmp_path):
+    """visual_search (via local file) base64-encodes and sends image_data."""
+    img_file = Path(tmp_path) / "test_cat.jpg"
+    img_file.write_bytes(b"fake-image-bytes")
 
-
-def _client():
-    # pylint: disable=import-outside-toplevel
-    from fastapi.testclient import TestClient
-    import main
-
-    return TestClient(main.app)
-
-
-def test_health_endpoint():
-    """The /health endpoint reports ok without auth or network."""
-    client = _client()
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json() == {"status": "ok", "service": "search-service"}
-
-
-def test_web_search_route():
-    """POST /web-search maps query results through the route."""
-    raw = [{"title": "t", "href": "https://e.com", "body": "b"}]
-    with mock.patch("app.duckduckgo.DDGS", return_value=_fake_ddgs_context(raw)):
-        client = _client()
-        resp = client.post("/web-search", json={"query": "cats", "max_results": 5})
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["query"] == "cats"
-    assert body["count"] == 1
-    assert body["results"][0]["url"] == "https://e.com"
-
-
-def test_visual_search_route():
-    """POST /visual-search maps visual matches through the route."""
-    raw = {
+    fake_search = mock.Mock()
+    fake_search.get_dict.return_value = {
         "visual_matches": [
             {
                 "position": 1,
-                "title": "t",
-                "link": "l",
-                "source": "s",
-                "thumbnail": "th",
-                "image": "im",
+                "title": "Local Cat",
+                "link": "https://example.com/local",
+                "source": "example.com",
+                "thumbnail": "https://example.com/t.jpg",
+                "image": "https://example.com/t.png",
             }
         ]
     }
-    fake_search = mock.Mock()
-    fake_search.get_dict.return_value = raw
-    with mock.patch("app.serpapi.GoogleSearch", return_value=fake_search):
-        client = _client()
-        resp = client.post(
-            "/visual-search",
-            json={"image_url": "https://e.com/c.jpg", "max_results": 10},
+    patch_path = "agent.tools.search.serpapi_tool.GoogleSearch"
+    with mock.patch(patch_path, return_value=fake_search) as mock_gs:
+        result = serp.visual_search.invoke(
+            {"image_path": str(img_file), "max_results": 5}
         )
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["image_url"] == "https://e.com/c.jpg"
-    assert body["count"] == 1
-    assert body["results"][0]["title"] == "t"
+
+    assert result["success"] is True
+    assert result["count"] == 1
+    assert result["results"][0]["title"] == "Local Cat"
+
+    call_args, _ = mock_gs.call_args
+    params = call_args[0]
+    assert "image_data" in params
+    assert params["image_data"] == base64.b64encode(b"fake-image-bytes").decode("utf-8")
 
 
-def test_web_search_route_error_returns_500():
-    """The web-search route surfaces failures as HTTP 500."""
-    cm = mock.MagicMock()
-    cm.__enter__.side_effect = RuntimeError("boom")
-    cm.__exit__.return_value = False
-    with mock.patch("app.duckduckgo.DDGS", return_value=cm):
-        client = _client()
-        resp = client.post("/web-search", json={"query": "cats"})
-    assert resp.status_code == 500
-    assert "Search failed" in resp.json()["detail"]
+def test_visual_search_local_file_not_found(monkeypatch):
+    """visual_search returns an error when the local file does not exist."""
+    monkeypatch.setenv("SERPAPI_KEY", "test-key")
+    result = serp.visual_search.invoke({"image_path": "/nonexistent/no-cat.jpg"})
+    assert result["success"] is False
+    assert "not found" in result["error"]
+
+
+def test_visual_search_not_configured_returns_stub(monkeypatch):
+    """visual_search returns a stub when SERPAPI_KEY is not set."""
+    monkeypatch.delenv("SERPAPI_KEY", raising=False)
+    result = serp.visual_search.invoke({"image_url": "https://example.com/cat.jpg"})
+    assert result["success"] is False
+    assert "not configured" in result["error"]
+
+
+# ---------------------------------------------------------------------------
+# Tool-list exports via package __init__
+# ---------------------------------------------------------------------------
+
+
+def test_search_tools_exported():
+    """SEARCH_TOOLS is re-exported from the package __init__."""
+    from agent.tools.search import SEARCH_TOOLS  # pylint: disable=import-outside-toplevel
+
+    tool_names = {t.name for t in SEARCH_TOOLS}
+    assert "web_search" in tool_names
+    assert "visual_search" in tool_names
