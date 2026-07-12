@@ -48,6 +48,7 @@ from .services import (  # noqa: E402  # pylint: disable=wrong-import-position
     list_threads,
     persist_message,
     record_perception_event,
+    upsert_pet_profile,
 )
 
 app = FastAPI(title="Pet Companion — Module 2 (Autonomous Intervention)")
@@ -111,6 +112,28 @@ def pet_profile(pet_id: str):
             status_code=404, detail=f"Profile not found for pet '{pet_id}'"
         )
     return {"profile": profile}
+
+
+class PetProfilePayload(BaseModel):
+    """Wire format for creating or updating a pet profile."""
+
+    pet_id: str
+    name: str | None = None
+    species: str
+    breed: str | None = None
+    weight_kg: float | None = None
+    life_stage: str | None = None
+    known_conditions: str | None = None
+    delivery_address: str | None = None
+    preferred_clinic: str | None = None
+    preferred_food_brand: str | None = None
+
+
+@app.post("/pet-profile")
+def create_or_update_pet_profile(payload: PetProfilePayload):
+    """Create or update a pet's profile."""
+    upsert_pet_profile(payload.model_dump())
+    return {"success": True, "pet_id": payload.pet_id}
 
 
 # ---------------------------------------------------------------------------
