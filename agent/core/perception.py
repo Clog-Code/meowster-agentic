@@ -69,6 +69,7 @@ class PerceptionEvent:
     food_level: str | None = None
     water_level: str | None = None
     notes: str | None = None
+    image_path: str | None = None
     timestamp: str | None = None
 
     def classify(self) -> WorkflowKind:
@@ -115,6 +116,8 @@ class PerceptionEvent:
             lines.append(f"water_level: {self.water_level}")
         if self.notes:
             lines.append(f"notes: {self.notes}")
+        if self.image_path:
+            lines.append(f"image_path: {self.image_path}")
         if self.timestamp:
             lines.append(f"observed_at: {self.timestamp}")
 
@@ -139,5 +142,6 @@ def parse_perception_payload(payload: dict) -> PerceptionEvent:
         food_level=payload.get("food_level"),
         water_level=payload.get("water_level"),
         notes=payload.get("notes"),
+        image_path=payload.get("image_path"),
         timestamp=payload.get("timestamp"),
     )

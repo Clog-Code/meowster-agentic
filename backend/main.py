@@ -114,6 +114,7 @@ class PerceptionPayload(BaseModel):
     food_level: str | None = None
     water_level: str | None = None
     notes: str | None = None
+    image_path: str | None = None  # local server path, e.g. from POST /upload
     timestamp: str | None = None
     thread_id: str | None = None  # reuse an existing conversation if provided
 
