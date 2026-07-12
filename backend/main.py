@@ -44,6 +44,7 @@ from .services import (  # noqa: E402  # pylint: disable=wrong-import-position
     ensure_thread,
     get_pet_profile,
     get_thread_messages,
+    list_pet_profiles,
     list_threads,
     persist_message,
     record_perception_event,
@@ -93,6 +94,12 @@ async def upload_file(file: UploadFile = File(...)):
 # ---------------------------------------------------------------------------
 # Pet profile endpoint
 # ---------------------------------------------------------------------------
+
+
+@app.get("/pet-profiles")
+def list_pets():
+    """List all registered pets (pet_id, name, species)."""
+    return {"pets": list_pet_profiles()}
 
 
 @app.get("/pet-profile/{pet_id}")

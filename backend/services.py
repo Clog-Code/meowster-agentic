@@ -69,6 +69,15 @@ def list_threads(limit: int = 50) -> list[dict[str, Any]]:
         return [dict(row) for row in cursor.fetchall()]
 
 
+def list_pet_profiles() -> list[dict[str, Any]]:
+    """Return all stored pet profiles (pet_id, name, species)."""
+    with get_db() as conn:
+        cursor = conn.execute(
+            "SELECT pet_id, name, species FROM pet_profiles ORDER BY created_at"
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+
 def get_pet_profile(pet_id: str) -> dict[str, Any] | None:
     """Fetch a pet's stored profile by pet_id."""
     with get_db() as conn:

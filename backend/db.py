@@ -1,5 +1,6 @@
 """SQLite connection + schema management for the backend."""
 
+import uuid
 import sqlite3
 from contextlib import contextmanager
 
@@ -72,6 +73,61 @@ def init_db() -> None:
     """Create tables if they don't already exist. Call once at startup."""
     with _connect() as conn:
         conn.executescript(_SCHEMA)
+        _seed_pet_profiles(conn)
+
+
+_SEED_PROFILES = [
+    {
+        "pet_id": str(uuid.uuid5(uuid.NAMESPACE_DNS, "mochi")),
+        "name": "Mochi",
+        "species": "Cat",
+        "breed": "Domestic Shorthair",
+        "weight_kg": 4.2,
+        "life_stage": "Adult",
+        "known_conditions": "None",
+        "delivery_address": "123 Pet Street, NY 10001",
+        "preferred_clinic": "Happy Paws Vet Clinic",
+        "preferred_food_brand": "Whiskas",
+    },
+    {
+        "pet_id": str(uuid.uuid5(uuid.NAMESPACE_DNS, "luna")),
+        "name": "Luna",
+        "species": "Cat",
+        "breed": "Persian",
+        "weight_kg": 3.8,
+        "life_stage": "Kitten",
+        "known_conditions": "None",
+        "delivery_address": "123 Pet Street, NY 10001",
+        "preferred_clinic": "Happy Paws Vet Clinic",
+        "preferred_food_brand": "Royal Canin",
+    },
+]
+
+
+def _seed_pet_profiles(conn) -> None:
+    """Insert default pet profiles if they don't already exist."""
+    for profile in _SEED_PROFILES:
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO pet_profiles (
+                pet_id, name, species, breed, weight_kg, life_stage,
+                known_conditions, delivery_address, preferred_clinic,
+                preferred_food_brand
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                profile["pet_id"],
+                profile["name"],
+                profile["species"],
+                profile["breed"],
+                profile["weight_kg"],
+                profile["life_stage"],
+                profile["known_conditions"],
+                profile["delivery_address"],
+                profile["preferred_clinic"],
+                profile["preferred_food_brand"],
+            ),
+        )
 
 
 @contextmanager
