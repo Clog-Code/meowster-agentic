@@ -257,12 +257,21 @@ def _build_month_days(
         moments = day_map[d]
         emotions = [m["emotion"] for m in moments if m["emotion"]]
         dominant = max(set(emotions), key=emotions.count) if emotions else None
+        
+        # Pick the latest image_path from the day's moments
+        image_path = None
+        for m in reversed(moments):
+            if m.get("image_path"):
+                image_path = m["image_path"]
+                break
+
         days_out.append(
             {
                 "date": d.isoformat(),
                 "capture_count": len(moments),
                 "dominant_emotion": dominant,
                 "species": moments[0]["species"],
+                "image_path": image_path,
             }
         )
     return days_out
@@ -292,7 +301,7 @@ def get_streak_summary(pet_id: str) -> dict[str, Any]:
     with get_db() as conn:
         rows = conn.execute(
             """
-            SELECT captured_at, emotion, species
+            SELECT captured_at, emotion, species, image_path
             FROM pet_moments
             WHERE pet_id = ?
             ORDER BY captured_at ASC
@@ -313,7 +322,13 @@ def get_streak_summary(pet_id: str) -> dict[str, Any]:
     all_dates: set[date] = set()
     for row in rows:
         d = date.fromisoformat(row["captured_at"])
-        day_map[d].append({"emotion": row["emotion"], "species": row["species"]})
+        day_map[d].append(
+            {
+                "emotion": row["emotion"],
+                "species": row["species"],
+                "image_path": row["image_path"],
+            }
+        )
         all_dates.add(d)
 
     unique_dates = sorted(all_dates)
