@@ -116,7 +116,7 @@ _SEED_OWNERS = [
     {
         "owner_id": "owner-01",
         "name": "Dickson Lai",
-        "phone": "+60 14-xxx 9460",
+        "phone": "+65 8xxx 9460",
         "address": "14000 Bukit Mertajam, Pulau Pinang",
     },
 ]
