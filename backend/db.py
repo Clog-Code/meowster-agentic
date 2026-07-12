@@ -8,6 +8,15 @@ from contextlib import contextmanager
 from .config import DATABASE_PATH
 
 _SCHEMA = """
+CREATE TABLE IF NOT EXISTS owner_profiles (
+    owner_id    TEXT PRIMARY KEY,
+    name        TEXT,
+    phone       TEXT,
+    address     TEXT,
+    created_at  TEXT DEFAULT (datetime('now')),
+    updated_at  TEXT DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS pet_profiles (
     pet_id                TEXT PRIMARY KEY,
     name                  TEXT,
@@ -87,8 +96,28 @@ def init_db() -> None:
     """Create tables if they don't already exist. Call once at startup."""
     with _connect() as conn:
         conn.executescript(_SCHEMA)
+        _seed_owner_profiles(conn)
         _seed_pet_profiles(conn)
         _seed_pet_moments(conn)
+
+
+_SEED_OWNERS = [
+    {
+        "owner_id": "owner-01",
+        "name": "Dickson Lai",
+        "phone": "+60 14-xxx 9460",
+        "address": "14000 Bukit Mertajam, Pulau Pinang",
+    },
+]
+
+
+def _seed_owner_profiles(conn) -> None:
+    for owner in _SEED_OWNERS:
+        conn.execute(
+            "INSERT OR IGNORE INTO owner_profiles (owner_id, name, phone, address) "
+            "VALUES (?, ?, ?, ?)",
+            (owner["owner_id"], owner["name"], owner["phone"], owner["address"]),
+        )
 
 
 _SEED_PROFILES = [

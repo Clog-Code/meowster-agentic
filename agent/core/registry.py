@@ -13,6 +13,7 @@ from ..tools import (
     CALENDAR_TOOLS,
     COMMERCE_TOOLS,
     COMMUNICATION_TOOLS,
+    OWNER_PROFILE_TOOLS,
     PET_PROFILE_TOOLS,
     SEARCH_TOOLS,
 )
@@ -23,6 +24,7 @@ _NATIVE_TOOL_GROUPS: dict[str, list[BaseTool]] = {
     "communication": COMMUNICATION_TOOLS,
     "commerce": COMMERCE_TOOLS,
     "calendar": CALENDAR_TOOLS,
+    "owner_profile": OWNER_PROFILE_TOOLS,
     "pet_profile": PET_PROFILE_TOOLS,
     "search": SEARCH_TOOLS,
 }
