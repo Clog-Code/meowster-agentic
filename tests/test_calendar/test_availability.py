@@ -146,7 +146,6 @@ HAS_GOOGLE_CALENDAR = (
 )
 
 
-
 def test_calendar_tools_exported():
     """Both tools are exported in CALENDAR_TOOLS."""
     # pylint: disable=import-outside-toplevel

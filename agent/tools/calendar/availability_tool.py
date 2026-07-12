@@ -246,9 +246,9 @@ def _query_calendar(
 
 def _build_service_account_service(creds_json: str) -> Any:
     """Build Calendar v3 service from a service-account JSON key."""
-    SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+    scopes = ["https://www.googleapis.com/auth/calendar.readonly"]
     creds = service_account.Credentials.from_service_account_info(
-        json.loads(creds_json), scopes=SCOPES
+        json.loads(creds_json), scopes=scopes
     )
     return build("calendar", "v3", credentials=creds)
 

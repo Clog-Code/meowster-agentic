@@ -65,15 +65,18 @@ def _startup() -> None:
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
     """Save an uploaded image and return its URL and absolute disk path."""
-    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "bin"
+    name = file.filename or "file"
+    ext = name.rsplit(".", 1)[-1].lower() if "." in name else "bin"
     filename = f"{uuid.uuid4()}.{ext}"
     dest = UPLOADS_DIR / filename
     dest.write_bytes(await file.read())
-    return JSONResponse({
-        "url": f"/uploads/{filename}",
-        "path": str(dest.resolve()),
-        "filename": file.filename,
-    })
+    return JSONResponse(
+        {
+            "url": f"/uploads/{filename}",
+            "path": str(dest.resolve()),
+            "filename": file.filename,
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -177,9 +180,7 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
-app.mount(
-    "/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads"
-)
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 app.mount(
     "/", StaticFiles(directory=str(BASE_DIR / "static"), html=True), name="static"
 )

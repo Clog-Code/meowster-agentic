@@ -20,7 +20,7 @@ _CATBOX_URL = "https://catbox.moe/user/api.php"
 
 
 def _serpapi_configured() -> bool:
-    return bool(SERPAPI_KEY)
+    return bool(os.getenv("SERPAPI_KEY"))
 
 
 def _stub(image_path: str, image_url: str) -> dict[str, Any]:
@@ -53,10 +53,12 @@ def _publish_local_file(image_path: str) -> tuple[str | None, str | None]:
         return url, None
     except FileNotFoundError:
         return None, f"Image file not found: {image_path}"
+    except requests.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else "?"
+        text = exc.response.text if exc.response is not None else "?"
+        return None, f"Upload failed ({status}): {text}"
     except OSError as exc:
         return None, f"Failed to read image file: {exc}"
-    except requests.HTTPError as exc:
-        return None, f"Upload failed ({exc.response.status_code}): {exc.response.text}"
     except Exception as exc:
         return None, str(exc)
 
@@ -64,12 +66,14 @@ def _publish_local_file(image_path: str) -> tuple[str | None, str | None]:
 def _run_lens(url: str, max_results: int) -> dict[str, Any]:
     """Run Google Lens against a public URL and return normalised results."""
     try:
-        search = GoogleSearch({
-            "engine": "google_lens",
-            "type": "visual_matches",
-            "url": url,
-            "api_key": SERPAPI_KEY,
-        })
+        search = GoogleSearch(
+            {
+                "engine": "google_lens",
+                "type": "visual_matches",
+                "url": url,
+                "api_key": SERPAPI_KEY,
+            }
+        )
         data = search.get_dict()
     except Exception as exc:
         return {"success": False, "error": str(exc), "results": []}
@@ -127,12 +131,17 @@ def visual_search(
         return _stub(image_path, image_url)
 
     if not image_path and not image_url:
-        return {"success": False, "error": "Provide either image_path or image_url.", "results": []}
+        return {
+            "success": False,
+            "error": "Provide either image_path or image_url.",
+            "results": [],
+        }
 
     if image_path:
         public_url, err = _publish_local_file(image_path)
         if err:
             return {"success": False, "error": err, "results": []}
+        assert public_url is not None
         result = _run_lens(public_url, max_results)
         result["image_path"] = image_path
         result["published_url"] = public_url

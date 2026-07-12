@@ -1,6 +1,5 @@
 """Unit tests for the search tools (agent/tools/search/*) — no network needed."""
 
-import base64
 import os
 import sys
 from pathlib import Path
@@ -66,7 +65,7 @@ def test_web_search_respects_max_results():
     patch_path = "agent.tools.search.duckduckgo_tool.DDGS"
     with mock.patch(patch_path, return_value=cm):
         ddg.web_search.invoke({"query": "cats", "max_results": 3})
-    _, kwargs = fake_ddgs.text.call_args
+    _, kwargs = fake_ddgs.text.call_args  # pylint: disable=no-member
     assert kwargs["max_results"] == 3
 
 
@@ -179,9 +178,13 @@ def test_visual_search_requires_url_or_path():
 
 
 def test_visual_search_local_file(tmp_path):
-    """visual_search (via local file) base64-encodes and sends image_data."""
+    """visual_search (via local file) uploads to catbox.moe and sends the public URL."""
     img_file = Path(tmp_path) / "test_cat.jpg"
     img_file.write_bytes(b"fake-image-bytes")
+
+    fake_post_resp = mock.Mock()
+    fake_post_resp.raise_for_status.return_value = None
+    fake_post_resp.text = "https://files.catbox.moe/uploaded.jpg"
 
     fake_search = mock.Mock()
     fake_search.get_dict.return_value = {
@@ -197,10 +200,13 @@ def test_visual_search_local_file(tmp_path):
         ]
     }
     patch_path = "agent.tools.search.serpapi_tool.GoogleSearch"
-    with mock.patch(patch_path, return_value=fake_search) as mock_gs:
-        result = serp.visual_search.invoke(
-            {"image_path": str(img_file), "max_results": 5}
-        )
+    with mock.patch(
+        "agent.tools.search.serpapi_tool.requests.post", return_value=fake_post_resp
+    ):
+        with mock.patch(patch_path, return_value=fake_search) as mock_gs:
+            result = serp.visual_search.invoke(
+                {"image_path": str(img_file), "max_results": 5}
+            )
 
     assert result["success"] is True
     assert result["count"] == 1
@@ -208,8 +214,8 @@ def test_visual_search_local_file(tmp_path):
 
     call_args, _ = mock_gs.call_args
     params = call_args[0]
-    assert "image_data" in params
-    assert params["image_data"] == base64.b64encode(b"fake-image-bytes").decode("utf-8")
+    assert "url" in params
+    assert params["url"] == "https://files.catbox.moe/uploaded.jpg"
 
 
 def test_visual_search_local_file_not_found(monkeypatch):
