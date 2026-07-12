@@ -132,7 +132,7 @@ def upsert_pet_profile(profile: dict[str, Any]) -> None:
             """,
             (
                 profile["pet_id"],
-                profile.get("owner_id"),
+                profile.get("owner_id") or "owner-01",
                 profile.get("name"),
                 profile["species"],
                 profile.get("breed"),
