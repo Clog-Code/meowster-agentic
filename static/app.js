@@ -138,7 +138,8 @@ const previewContainer = document.getElementById("attachment-preview");
 const previewImg = document.getElementById("preview-img");
 const removeBtn = document.getElementById("remove-attachment");
 
-let pendingImageUrl = null; // server URL after upload
+let pendingImageUrl = null;  // for preview / display
+let pendingImagePath = null; // absolute disk path for visual_search
 
 fileInput.addEventListener("change", async () => {
   const file = fileInput.files[0];
@@ -156,6 +157,7 @@ fileInput.addEventListener("change", async () => {
     if (res.ok) {
       const data = await res.json();
       pendingImageUrl = data.url;
+      pendingImagePath = data.path;
     } else {
       addMessage("error", `Upload failed: ${res.status}`);
       clearAttachment();
@@ -169,6 +171,7 @@ fileInput.addEventListener("change", async () => {
 
 function clearAttachment() {
   pendingImageUrl = null;
+  pendingImagePath = null;
   previewImg.src = "";
   previewContainer.classList.add("hidden");
 }
@@ -183,9 +186,11 @@ document.getElementById("send-chat").addEventListener("click", () => {
   if (!text && !pendingImageUrl) return;
 
   const imageUrl = pendingImageUrl;
-  // Build the message content: text + image URL hint for the agent
-  const agentContent = imageUrl
-    ? `${text}\n[image attached: ${window.location.origin}${imageUrl}]`
+  const imagePath = pendingImagePath;
+  // Pass the disk path so the agent can call visual_search(image_path=...)
+  // directly — no localhost URL needed.
+  const agentContent = imagePath
+    ? `${text}\n[image attached — use visual_search with image_path: ${imagePath}]`
     : text;
 
   addMessage("user", text || "(image)", imageUrl);

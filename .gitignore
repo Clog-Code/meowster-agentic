@@ -377,3 +377,4 @@ vite.config.ts.timestamp-*
 .git/
 *.zip
 *.db 
+uploads/

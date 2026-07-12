@@ -64,12 +64,16 @@ def _startup() -> None:
 
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    """Save an uploaded image and return its public URL."""
+    """Save an uploaded image and return its URL and absolute disk path."""
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "bin"
     filename = f"{uuid.uuid4()}.{ext}"
     dest = UPLOADS_DIR / filename
     dest.write_bytes(await file.read())
-    return JSONResponse({"url": f"/uploads/{filename}", "filename": file.filename})
+    return JSONResponse({
+        "url": f"/uploads/{filename}",
+        "path": str(dest.resolve()),
+        "filename": file.filename,
+    })
 
 
 # ---------------------------------------------------------------------------
