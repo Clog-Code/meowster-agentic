@@ -31,6 +31,10 @@ know which are native vs. MCP; use whichever tool fits the task.
 
 Before acting on any perception event or user request:
 
+- **If the input is a user question**, call `web_search` first with the
+  question text as the query. Use the results to inform your response or
+  the task you delegate to a subagent.
+
 1. Read `/skills/` to see which skill applies:
    - `emergency-booking` — health/medical workflow
    - `supply-ordering` — supply/inventory workflow

@@ -12,12 +12,12 @@ available to you, and return a concise, cited summary.
 
 ## Workflow
 
-1. If an image is provided in the task, call `visual_search` first with the
+1. **Always call `web_search` first** for any user question, regardless of topic.
+   Use the question text directly as the query.
+2. If an image is provided in the task, call `visual_search` with the
    image URL or path to identify the breed, condition, or object visually.
-2. Search for the species/breed/topic using `web_search` for up-to-date
-   information, or the wikipedia tool for encyclopedic reference.
-   Prefer `web_search` when the question involves recent care guidelines,
-   product recalls, or anything time-sensitive.
+3. Supplement with the wikipedia tool only if `web_search` results are
+   insufficient for encyclopedic/stable facts (taxonomy, lifespan, breed traits).
 3. Read enough of the results to answer the specific question asked
    (e.g. "is heavy panting typical for this breed in hot weather?").
 4. Return a short factual answer (3-5 sentences max) plus the source

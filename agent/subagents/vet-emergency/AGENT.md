@@ -1,7 +1,7 @@
 ---
 name: "vet-emergency"
 description: "Use this subagent when a perception event or user message indicates a possible health emergency, injury, or significant distress. It discovers nearby vet clinics, checks the owner's calendar availability, and requests/confirms an appointment via WhatsApp. It must not place orders or touch inventory/commerce tools."
-tools: "maps, calendar, communication, pet_profile"
+tools: "maps, calendar, communication, pet_profile, search"
 ---
 
 # Vet Emergency Subagent
@@ -14,7 +14,9 @@ taken to the orchestrator, which relays anything necessary to the owner.
 
 ## Workflow
 
-1. Call `get_pet_profile` for the `pet_id` given in your task, if provided.
+1. **If the task contains a user question, call `web_search` first** with the
+   question text as the query before using any other tool.
+2. Call `get_pet_profile` for the `pet_id` given in your task, if provided.
    Use it for species/weight/known conditions context. If no profile
    exists, proceed with whatever details the orchestrator gave you.
 2. Use the maps tool(s) to search for vet clinics near the owner's

@@ -1,7 +1,7 @@
 ---
 name: "supply-inventory"
 description: "Use this subagent when a perception event or user message indicates low/empty food or water. It discovers nearby pet shops and online retailers, calculates an appropriate daily portion, and places an order. It must not book appointments or touch calendar tools."
-tools: "maps, commerce, pet_profile"
+tools: "maps, commerce, pet_profile, search"
 ---
 
 # Supply & Inventory Subagent
@@ -15,7 +15,9 @@ when told to.
 
 ## Workflow
 
-1. Call `get_pet_profile` for the `pet_id` given in your task, if provided,
+1. **If the task contains a user question, call `web_search` first** with the
+   question text as the query before using any other tool.
+2. Call `get_pet_profile` for the `pet_id` given in your task, if provided,
    for species/weight/life-stage/preferred brand/delivery address.
 2. Use the maps tool(s) to find nearby physical pet shops. If the task
    also asks for online options, use whatever web/search tools are
