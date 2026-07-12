@@ -46,6 +46,7 @@ init-hook = "import sys; sys.path.insert(0, 'examples'); sys.path.insert(0, 'exa
 disable = [
     "broad-exception-caught",
     "duplicate-code",
+    "too-few-public-methods",
     "too-many-arguments",
     "too-many-branches",
     "too-many-instance-attributes",

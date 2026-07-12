@@ -107,7 +107,9 @@ def _migrate(conn: sqlite3.Connection) -> None:
     """Apply additive migrations to an existing database."""
     cols = {row[1] for row in conn.execute("PRAGMA table_info(pet_profiles)")}
     if "owner_id" not in cols:
-        conn.execute("ALTER TABLE pet_profiles ADD COLUMN owner_id TEXT REFERENCES owner_profiles(owner_id)")
+        conn.execute(
+            "ALTER TABLE pet_profiles ADD COLUMN owner_id TEXT REFERENCES owner_profiles(owner_id)"
+        )
 
 
 _SEED_OWNERS = [

@@ -29,10 +29,14 @@ def get_owner_profile(owner_id: str = "owner-01") -> dict[str, Any]:
         ).fetchone()
 
         if owner_row is None:
-            return {"success": False, "error": f"No owner profile found for '{owner_id}'."}
+            return {
+                "success": False,
+                "error": f"No owner profile found for '{owner_id}'.",
+            }
 
         pets = conn.execute(
-            "SELECT pet_id, name, species, breed FROM pet_profiles WHERE owner_id = ? ORDER BY created_at",
+            "SELECT pet_id, name, species, breed FROM pet_profiles"
+            "WHERE owner_id = ? ORDER BY created_at",
             (owner_id,),
         ).fetchall()
 

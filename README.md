@@ -69,7 +69,7 @@ Stdio-transport plugins are supported too — use `MCP_<NAME>_COMMAND` /
 
 | Tool                        | File                                            | Status                                                       |
 | --------------------------- | ----------------------------------------------- | ------------------------------------------------------------ |
-| `send_whatsapp_message`     | `agent/tools/communication/whatsapp_tool.py`    | **Stub** — wire up WhatsApp Business API / Green API          |
+| `send_whatsapp_message`     | `agent/tools/communication/whatsapp_tool.py`    | **Stub** — wire up WhatsApp Business API / Green API         |
 | `place_order`               | `agent/tools/commerce/order_tool.py`            | **Stub** — wire up retailer API + TnG/payment gateway        |
 | `get_user_availability`     | `agent/tools/calendar/availability_tool.py`     | **Stub** — wire up Google Calendar/Outlook                   |
 | `calculate_daily_portion`   | `agent/tools/commerce/nutrition_tool.py`        | ✅ Functional (RER/DER veterinary formulas)                  |

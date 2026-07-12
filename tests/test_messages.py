@@ -16,6 +16,7 @@ class _Message:
 
 
 def test_state_is_prefixed_to_first_user_message():
+    """Test that the [state] block is prepended to the first user message when state is provided."""
     messages = [
         _Message("user", "Book a checkup"),
         _Message("assistant", "Sure"),
