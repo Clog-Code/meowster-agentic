@@ -69,6 +69,23 @@ def list_threads(limit: int = 50) -> list[dict[str, Any]]:
         return [dict(row) for row in cursor.fetchall()]
 
 
+def get_pet_profile(pet_id: str) -> dict[str, Any] | None:
+    """Fetch a pet's stored profile by pet_id."""
+    with get_db() as conn:
+        cursor = conn.execute(
+            """
+            SELECT pet_id, name, species, breed, weight_kg, life_stage,
+                   known_conditions, delivery_address, preferred_clinic,
+                   preferred_food_brand
+            FROM pet_profiles
+            WHERE pet_id = ?
+            """,
+            (pet_id,),
+        )
+        row = cursor.fetchone()
+    return dict(row) if row else None
+
+
 def upsert_pet_profile(profile: dict[str, Any]) -> None:
     """Create or update a pet's stored profile."""
     with get_db() as conn:

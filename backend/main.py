@@ -42,6 +42,7 @@ UPLOADS_DIR.mkdir(exist_ok=True)
 from .db import init_db  # noqa: E402  # pylint: disable=wrong-import-position
 from .services import (  # noqa: E402  # pylint: disable=wrong-import-position
     ensure_thread,
+    get_pet_profile,
     get_thread_messages,
     list_threads,
     persist_message,
@@ -87,6 +88,22 @@ async def upload_file(file: UploadFile = File(...)):
             "filename": file.filename,
         }
     )
+
+
+# ---------------------------------------------------------------------------
+# Pet profile endpoint
+# ---------------------------------------------------------------------------
+
+
+@app.get("/pet-profile/{pet_id}")
+def pet_profile(pet_id: str):
+    """Fetch a pet's stored profile (name, breed, weight, etc.)."""
+    profile = get_pet_profile(pet_id)
+    if profile is None:
+        raise HTTPException(
+            status_code=404, detail=f"Profile not found for pet '{pet_id}'"
+        )
+    return {"profile": profile}
 
 
 # ---------------------------------------------------------------------------
