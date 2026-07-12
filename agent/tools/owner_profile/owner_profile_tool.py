@@ -35,7 +35,7 @@ def get_owner_profile(owner_id: str = "owner-01") -> dict[str, Any]:
             }
 
         pets = conn.execute(
-            "SELECT pet_id, name, species, breed FROM pet_profiles"
+            "SELECT pet_id, name, species, breed FROM pet_profiles "
             "WHERE owner_id = ? ORDER BY created_at",
             (owner_id,),
         ).fetchall()
