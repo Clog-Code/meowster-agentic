@@ -14,6 +14,7 @@ from ..tools import (
     COMMERCE_TOOLS,
     COMMUNICATION_TOOLS,
     PET_PROFILE_TOOLS,
+    SEARCH_TOOLS,
 )
 
 # Native tool groups, keyed by the group name subagent AGENT.md files
@@ -23,6 +24,7 @@ _NATIVE_TOOL_GROUPS: dict[str, list[BaseTool]] = {
     "commerce": COMMERCE_TOOLS,
     "calendar": CALENDAR_TOOLS,
     "pet_profile": PET_PROFILE_TOOLS,
+    "search": SEARCH_TOOLS,
 }
 
 

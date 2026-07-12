@@ -11,12 +11,18 @@ description: Use when you need species/breed reference context to judge whether 
   flagged "distress" with low confidence, or a food/water level marked
   "low" for a species whose baseline consumption you're unsure about).
 - The owner asks a general species/breed care question.
+- An image is available and breed/condition identification would help
+  triage (pass the image URL or path to `pet-info-lookup`).
 
 ## Workflow
 
 1. Delegate to `pet-info-lookup` with a specific, answerable question
    (e.g. "Do Siamese cats commonly vocalize more than other breeds?"),
    not just the raw perception event.
+   - If an image is present, include it so the subagent can run
+     `visual_search` to identify breed or visible condition first.
+   - For time-sensitive or product-specific questions, the subagent will
+     use `web_search` instead of (or in addition to) Wikipedia.
 2. Use the answer to decide: does this genuinely warrant the
    emergency-booking or supply-ordering skill, or is it within normal
    range for the species/breed?

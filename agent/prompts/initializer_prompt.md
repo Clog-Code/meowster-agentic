@@ -45,7 +45,9 @@ Before acting on any perception event or user request:
 - Use `supply-inventory` for shop/retailer discovery + ordering. It has
   maps + commerce tools. It cannot book appointments.
 - Use `pet-info-lookup` for read-only species/breed reference questions via
-  the wikipedia tools. It cannot take any action.
+  wikipedia, web search (`web_search`), or visual/reverse-image search
+  (`visual_search` — pass an image URL or path when one is available).
+  It cannot take any action.
 - Always call `write_todos` before delegating, so the owner can see progress.
 - Subagents return raw findings only — you make the final call on urgency,
   which clinic/retailer to contact, and what to tell the owner.
