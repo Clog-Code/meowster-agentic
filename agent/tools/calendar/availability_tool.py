@@ -30,7 +30,7 @@ from typing import Any
 
 import sqlite3
 
-from google.auth import load_credentials_from_dict
+from google.oauth2 import service_account
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from langchain_core.runnables import RunnableConfig
@@ -246,7 +246,10 @@ def _query_calendar(
 
 def _build_service_account_service(creds_json: str) -> Any:
     """Build Calendar v3 service from a service-account JSON key."""
-    creds = load_credentials_from_dict(json.loads(creds_json))[0]
+    SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
+    creds = service_account.Credentials.from_service_account_info(
+        json.loads(creds_json), scopes=SCOPES
+    )
     return build("calendar", "v3", credentials=creds)
 
 
