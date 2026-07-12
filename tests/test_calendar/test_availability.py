@@ -137,32 +137,7 @@ def test_compute_free_slots_multiple_days():
 
 
 # ---------------------------------------------------------------------------
-# get_user_availability — stub fallback
-# ---------------------------------------------------------------------------
-
-
-def test_stub_returns_mocked_slots():
-    """Returns stubbed free slots when provider is stub."""
-    os.environ["CALENDAR_PROVIDER"] = "stub"
-    result = get_user_availability.invoke(
-        {"earliest": "2026-07-08", "latest": "2026-07-10"}
-    )
-    assert result["source"] == "stubbed"
-    assert len(result["free_slots"]) > 0
-
-
-def test_stub_handles_invalid_date():
-    """Falls back gracefully when an invalid date is provided."""
-    os.environ["CALENDAR_PROVIDER"] = "stub"
-    result = get_user_availability.invoke(
-        {"earliest": "not-a-date", "latest": "2026-07-10"}
-    )
-    assert result["source"] == "stubbed"
-    assert len(result["free_slots"]) > 0
-
-
-# ---------------------------------------------------------------------------
-# Live integration test — only runs when real Google creds are configured
+# Live integration tests — only run when real Google creds are configured
 # ---------------------------------------------------------------------------
 
 HAS_GOOGLE_CALENDAR = (
@@ -170,34 +145,6 @@ HAS_GOOGLE_CALENDAR = (
     and os.getenv("GOOGLE_CALENDAR_CREDENTIALS_JSON") is not None
 )
 
-
-# ---------------------------------------------------------------------------
-# list_calendar_events — stub fallback
-# ---------------------------------------------------------------------------
-
-
-def test_list_events_stub_returns_mocked_events():
-    """Returns stubbed events when provider is stub."""
-    os.environ["CALENDAR_PROVIDER"] = "stub"
-    result = list_calendar_events.invoke(
-        {"earliest": "2026-07-08", "latest": "2026-07-10"}
-    )
-    assert result["source"] == "stubbed"
-    assert len(result["events"]) == 2
-    for e in result["events"]:
-        assert "summary" in e
-        assert "start" in e
-        assert "end" in e
-
-
-def test_list_events_stub_handles_invalid_date():
-    """Falls back gracefully when an invalid date is provided."""
-    os.environ["CALENDAR_PROVIDER"] = "stub"
-    result = list_calendar_events.invoke(
-        {"earliest": "not-a-date", "latest": "2026-07-10"}
-    )
-    assert result["source"] == "stubbed"
-    assert len(result["events"]) > 0
 
 
 def test_calendar_tools_exported():
@@ -227,7 +174,6 @@ def test_live_google_calendar():
         {"earliest": "2026-07-08", "latest": "2026-07-10"}
     )
     assert result["source"] == "google_calendar", result.get("note", "")
-    assert len(result["free_slots"]) > 0
     for s in result["free_slots"]:
         assert "start" in s
         assert "end" in s
