@@ -43,6 +43,32 @@ def get_thread_messages(thread_id: str) -> list[dict[str, Any]]:
         return [dict(row) for row in cursor.fetchall()]
 
 
+def list_threads(limit: int = 50) -> list[dict[str, Any]]:
+    """List known threads, most recently active first, with a preview of
+    the last message and a total message count — enough for a "recent
+    chats" list in the app without fetching every message up front."""
+    with get_db() as conn:
+        cursor = conn.execute(
+            """
+            SELECT
+                t.thread_id,
+                t.title,
+                t.created_at,
+                (SELECT COUNT(*) FROM messages m WHERE m.thread_id = t.thread_id)
+                    AS message_count,
+                (SELECT content FROM messages m WHERE m.thread_id = t.thread_id
+                    ORDER BY timestamp DESC LIMIT 1) AS last_message,
+                (SELECT timestamp FROM messages m WHERE m.thread_id = t.thread_id
+                    ORDER BY timestamp DESC LIMIT 1) AS last_message_at
+            FROM threads t
+            ORDER BY COALESCE(last_message_at, t.created_at) DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        return [dict(row) for row in cursor.fetchall()]
+
+
 def upsert_pet_profile(profile: dict[str, Any]) -> None:
     """Create or update a pet's stored profile."""
     with get_db() as conn:
