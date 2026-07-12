@@ -216,7 +216,7 @@ async def run_agent(  # pylint: disable=too-many-locals
         return ev.state_snapshot(snapshot_payload)
 
     try:
-        messages = to_lc_messages(body.messages)
+        messages = to_lc_messages(body.messages, state=body.state)
 
         async for event in agent.astream_events(
             {"messages": messages}, config=config, version="v2"
